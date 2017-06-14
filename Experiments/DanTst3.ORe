@@ -1,0 +1,20 @@
+#Protocol Details#
+Protocol = SORv11
+Experiment_ID = 'DanTst3'
+
+#Protocol Timepoints#
+Sample_Cut = 600
+Sample_Max = 600
+Choice_Cut = 120
+Choice_Max = 120
+
+#Conditions#
+Conditions = ['Saline', 'Galantamine']
+
+#Objects#
+Object_List = ['Toy', 'Car', 'Bird', 'Melon']
+
+#Keyboard#
+Keypress_Setup = 1
+Left_Keybind = 'A'
+Right_Keybind = 'L'
