@@ -1,7 +1,10 @@
 ## Module Import ##
-import tkinter ## Import Tkinter Modules
-from tkinter import * ## Access Tkinter modules without calling to Tkinter
 import os
+import time
+import tkinter  ## Import Tkinter Modules
+from tkinter import *  ## Access Tkinter modules without calling to Tkinter
+from msvcrt import getch
+
 
 
 
