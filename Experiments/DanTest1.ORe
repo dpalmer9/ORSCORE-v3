@@ -1,0 +1,20 @@
+#Protocol Details#
+Protocol = SORv11
+Experiment_ID = 'DanTest1'
+
+#Protocol Timepoints#
+Sample_Cut = 30
+Sample_Max = 30
+Choice_Cut = 30
+Choice_Max = 30
+
+#Conditions#
+Conditions = []
+
+#Objects#
+Object_List = []
+
+#Keyboard#
+Keypress_Setup = 1
+Left_Keybind = 'A'
+Right_Keybind = 'L'
