@@ -1,12 +1,9 @@
 ## Module Import ##
 import os
 import time
-import tkinter  ## Import Tkinter Modules
 from tkinter import *  ## Access Tkinter modules without calling to Tkinter
-from msvcrt import getch
-import threading
-import csv
-import imp
+from threading import Thread
+
 
 
 
@@ -39,6 +36,10 @@ for prot in os.listdir(protocol_dir):
 
 Active_Prot = [prot_file.strip(".py") for prot_file in Active_Prot]
 
+
+## Establish Main Window ##
+top = Tk() # Establish Top/Primary Window
+
 ## Experiment Command Run Function ##
 def Experiment_Command_Run():
     ## Acquire filename ##
@@ -56,13 +57,15 @@ def Experiment_Command_Run():
 
     data_filepath = data_dir + "\\" + exp_selected_name + "\\" + exp_selected_name + "_Raw.csv"
     import_command = "import %s" % (exp_protocol_name)
-    trial_setup_code = ".Trial_Setup(Curr_Exp=exp_filepath, Curr_Raw_Data=data_filepath)"
-    run_trial_setup = exp_protocol_name + trial_setup_code
+    trial_thread_code = "run_thread = Thread(target = "
+    trial_setup_code = ".Trial_Setup(Curr_Exp=exp_filepath, Curr_Raw_Data=data_filepath))"
+    run_trial_setup = trial_thread_code + exp_protocol_name + trial_setup_code
+    run_trial_code2 = "run_thread.start()"
+    top.destroy()
     exec(import_command)
     exec(run_trial_setup)
+    exec(run_trial_code2)
 
-
-    return
 
 
 ## Experiment Delete Function ##
@@ -115,8 +118,8 @@ def Experiment_Command_Create():
     Protocol_Cancel.grid(row=3, column=1)
     create_window.mainloop()
     return
-## Establish Main Window ##
-top = tkinter.Tk() # Establish Top/Primary Window
+
+## GUI Properties ##
 title = Label(top, text="OR Score 2") # Establish title as main label
 title.grid(row=1, column=2)
 author = Label(top, text="Created by: Daniel Palmer, PhD")
