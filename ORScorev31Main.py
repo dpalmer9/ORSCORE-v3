@@ -3,6 +3,8 @@ import os
 import time
 from tkinter import *  ## Access Tkinter modules without calling to Tkinter
 from threading import Thread
+import imp
+
 
 
 
@@ -31,10 +33,10 @@ Active_Exp = [exp_names.strip(".ORe") for exp_names in Active_Exp]
 ## Get List of Available Protocols ##
 Active_Prot = list()
 for prot in os.listdir(protocol_dir):
-    if prot.endswith(".py"):
+    if prot.endswith(".ORp"):
         Active_Prot.append(prot)
 
-Active_Prot = [prot_file.strip(".py") for prot_file in Active_Prot]
+Active_Prot = [prot_file.strip(".ORp") for prot_file in Active_Prot]
 
 
 ## Establish Main Window ##
@@ -56,7 +58,8 @@ def Experiment_Command_Run():
     exp_protocol_name = str(exp_protocol_name[0])
 
     data_filepath = data_dir + "\\" + exp_selected_name + "\\" + exp_selected_name + "_Raw.csv"
-    import_command = "import %s" % (exp_protocol_name)
+    protocol_filepath = protocol_dir + "\\" + exp_selected_name + ".ORp"
+    import_command = "%s = imp.load_source('%s', r'%s\\Protocols\\%s.ORp')" % (exp_protocol_name, exp_protocol_name, current_dir, exp_protocol_name)
     trial_thread_code = "run_thread = Thread(target = "
     trial_setup_code = ".Trial_Setup(Curr_Exp=exp_filepath, Curr_Raw_Data=data_filepath))"
     run_trial_setup = trial_thread_code + exp_protocol_name + trial_setup_code
@@ -81,11 +84,11 @@ def Experiment_Command_Create():
     def Create_Command():
         prot_name_pos = Protocol_List.curselection()
         prot_name = Protocol_List.get(prot_name_pos[0])
-        protocol_file = prot_name + ".py"
-        tempfile = "SORv1.py 1"
+        protocol_file = prot_name + ".ORp"
+        global protocol_dir
         file_location = protocol_dir
         file_path = file_location + "\\" + protocol_file
-        import_command = "import %s" % (prot_name)
+        import_command = "%s = imp.load_source('%s', r'%s')" % (prot_name, prot_name, file_path)
         run_setup_command = prot_name + ".Create_Experiment()"
         exec(import_command)
         exec(run_setup_command)
@@ -120,12 +123,12 @@ def Experiment_Command_Create():
     return
 
 ## GUI Properties ##
-title = Label(top, text="OR Score 2") # Establish title as main label
+title = Label(top, text="OR Score3") # Establish title as main label
 title.grid(row=1, column=2)
 author = Label(top, text="Created by: Daniel Palmer, PhD")
 author.grid(row=2, column=2)
 
-Curr_Version = Label(top, text="Current Version: 2.00")
+Curr_Version = Label(top, text="Current Version: 1.00")
 Curr_Version.grid(row=3, column=2)
 
 Curr_Exp_Scroll = Scrollbar(top)
