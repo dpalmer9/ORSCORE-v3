@@ -14,7 +14,7 @@ os.environ['TCL_LIBRARY'] = r"C:\Users\dpalmer\AppData\Local\Programs\Python\Pyt
 os.environ['TK_LIBRARY'] = r"C:\Users\dpalmer\AppData\Local\Programs\Python\Python36-32\tcl\tk8.6"
 
 
-build_exe_options = {"packages": ["os", "tkinter", "time", "threading", "imp", "SORv14"], "excludes": [""], "include_files": [r"C:\Users\dpalmer\AppData\Local\Programs\Python\Python36-32\DLLs\tcl86t.dll",
+build_exe_options = {"packages": ["os", "tkinter", "time", "threading", "imp", "SORv14", "MSOv10"], "excludes": [""], "include_files": [r"C:\Users\dpalmer\AppData\Local\Programs\Python\Python36-32\DLLs\tcl86t.dll",
                  r"C:\Users\dpalmer\AppData\Local\Programs\Python\Python36-32\DLLs\tk86t.dll"] }
 
 base = None
