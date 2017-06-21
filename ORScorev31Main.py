@@ -72,8 +72,21 @@ def Experiment_Command_Run():
 
 
 ## Experiment Delete Function ##
-def Experiment_Command_Delete(Exp_Select):
-    return
+def Experiment_Command_Delete():
+    exp_select_list_pos = Curr_Exp_List.curselection()
+    exp_selected_name = Curr_Exp_List.get(exp_select_list_pos[0])
+    global exp_dir
+    file_path = exp_dir + "\\" + exp_selected_name + ".ORe"
+    os.remove(file_path)
+    Curr_Exp_List.delete(0, END)
+    Active_Exp = list()
+    for file in os.listdir(exp_dir):
+        if file.endswith(".ORe"):
+            Active_Exp.append(file)
+
+    Active_Exp = [exp_names.strip(".ORe") for exp_names in Active_Exp]
+    for exp in Active_Exp:
+        Curr_Exp_List.insert(END, exp)
 
 ## Experiment Create Function ##
 def Experiment_Command_Create():
