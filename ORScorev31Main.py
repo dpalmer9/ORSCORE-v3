@@ -2,8 +2,13 @@
 import os
 import time
 from tkinter import *  ## Access Tkinter modules without calling to Tkinter
+import tkinter.filedialog
+from tkinter import filedialog
 from threading import Thread
 import imp
+import pandas as pd
+import numpy as np
+
 
 
 
@@ -41,6 +46,8 @@ Active_Prot = [prot_file.strip(".ORp") for prot_file in Active_Prot]
 
 ## Establish Main Window ##
 top = Tk() # Establish Top/Primary Window
+icon = current_dir + "\\" + "Mouse_Icon.ico"
+top.iconbitmap(icon)
 
 ## Experiment Command Run Function ##
 def Experiment_Command_Run():
@@ -91,6 +98,9 @@ def Experiment_Command_Delete():
 ## Experiment Create Function ##
 def Experiment_Command_Create():
     create_window = Toplevel()
+    global icon
+    create_window.iconbitmap(icon)
+
 
 
     ## Create Command Function ##
@@ -144,14 +154,16 @@ author.grid(row=2, column=2)
 Curr_Version = Label(top, text="Current Version: 1.00")
 Curr_Version.grid(row=3, column=2)
 
-Curr_Exp_Scroll = Scrollbar(top)
-Curr_Exp_Scroll.grid(row=4, column=2)
 
-Curr_Exp_List = Listbox(top, selectmode=BROWSE, yscrollcommand=Curr_Exp_Scroll.set) # Create listbox of active experiments
+
+Curr_Exp_List = Listbox(top, selectmode=BROWSE) # Create listbox of active experiments
 for exp in Active_Exp:
     Curr_Exp_List.insert(END, exp)
-Curr_Exp_List.grid(row=4, column=2)
-Curr_Exp_Scroll.config(command=Curr_Exp_List.yview)
+Curr_Exp_List.grid(row=4, column=2,sticky=(N,W,E,S))
+Curr_Exp_Scroll = Scrollbar(top, orient=VERTICAL,command=Curr_Exp_List.yview)
+Curr_Exp_Scroll.grid(row=4, column=3,sticky=(N,S))
+Curr_Exp_List.configure(yscrollcommand=Curr_Exp_Scroll.set)
+
 
 
 Select_Exp = Button(top, text="Run Experiment", command=Experiment_Command_Run)

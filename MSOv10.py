@@ -618,6 +618,8 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
 
         def Trial_Setup_GUI(self):
             self.top_run = Tk()
+            global current_dir
+            self.top_run.iconbitmap
 
             self.run_title = Label(self.top_run, text="Trial Setup")
             self.run_title.grid(row=1, column=2)
@@ -667,36 +669,43 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
 
             self.run_mso_type = IntVar()
 
-            self.run_mso_tactile = Radiobutton(self.top_run, text="Tactile", variable=self.run_mso_type, value=1, command=self.msotactile)
+            self.run_mso_tactile = Radiobutton(self.top_run, text="Tactile", variable=self.run_mso_type, value=1,
+                                               command=self.msotactile)
             self.run_mso_tactile.grid(row=9, column=1)
 
-            self.run_mso_visual = Radiobutton(self.top_run, text="Visual", variable=self.run_mso_type, value=2, command=self.msovisual)
-            self.run_mso_visual.grid(row=9,column=2)
+            self.run_mso_visual = Radiobutton(self.top_run, text="Visual", variable=self.run_mso_type, value=2,
+                                              command=self.msovisual)
+            self.run_mso_visual.grid(row=9, column=2)
 
-            self.run_mso_multi = Radiobutton(self.top_run, text="Multimodal", variable=self.run_mso_type, value=3, command=self.msomulti)
-            self.run_mso_multi.grid(row=9, column=3)
+            self.run_mso_multi = Radiobutton(self.top_run, text="Multimodal", variable=self.run_mso_type, value=3,
+                                             command=self.msomulti)
+            self.run_mso_multi.grid(row=10, column=1)
+
+            self.run_mso_olfactory = Radiobutton(self.top_run, text="Olfactory", variable=self.run_mso_type, value=4,
+                                                 command=self.msoolf)
+            self.run_mso_olfactory.grid(row=9, column=3)
 
             self.run_odd_object_posotion_label = Label(self.top_run, text="Odd Object Position")
-            self.run_odd_object_posotion_label.grid(row=10, column=2)
+            self.run_odd_object_posotion_label.grid(row=11, column=2)
             self.run_odd_object_position_list = Spinbox(self.top_run, from_=1, to=5)
-            self.run_odd_object_position_list.grid(row=11, column=2)
+            self.run_odd_object_position_list.grid(row=12, column=2)
 
             self.run_start_trial_button = Button(self.top_run, text="Start Trial", command=self.run_start_trial)
-            self.run_start_trial_button.grid(row=12, column=2)
-
-            self.run_start_trial_button = Button(self.top_run, text="Cancel", command=self.run_cancel_trial)
             self.run_start_trial_button.grid(row=13, column=2)
 
+            self.run_start_trial_button = Button(self.top_run, text="Cancel", command=self.run_cancel_trial)
+            self.run_start_trial_button.grid(row=14, column=2)
+
             self.run_trial_parameter_frame = LabelFrame(self.top_run, text="Trial Parameters")
-            self.run_trial_parameter_frame.grid(row=14, column=2)
+            self.run_trial_parameter_frame.grid(row=15, column=2)
 
             self.parameter_frame_task = Label(self.run_trial_parameter_frame, text="Experiment Type: SORv11")
-            self.parameter_frame_task.grid(row=15, column=1)
+            self.parameter_frame_task.grid(row=16, column=1)
 
             self.parameter_frame_sample = Label(self.run_trial_parameter_frame,
                                                 text="Max = %i , Cutoff = %i " % (
                                                     self.Explore_Max, self.Explore_Cut))
-            self.parameter_frame_sample.grid(row=16, column=1)
+            self.parameter_frame_sample.grid(row=17, column=1)
 
             self.top_run.mainloop()
 
@@ -722,6 +731,8 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
                 self.trial_raw_phase = "Visual"
             elif self.run_modality_value == 3:
                 self.trial_raw_phase = "Multimodal"
+            elif self.run_modality_value == 4:
+                self.trial_raw_phase == "Olfactory"
             self.trial_import_data.append(self.trial_raw_phase)
 
             self.trial_raw_condition = str()
