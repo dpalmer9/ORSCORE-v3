@@ -13,8 +13,6 @@ import numpy as np
 
 
 
-
-
 ## Find Current Directory ##
 current_dir = os.getcwd()
 

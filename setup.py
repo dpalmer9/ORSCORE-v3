@@ -15,7 +15,7 @@ os.environ['TK_LIBRARY'] = r"C:\Python34\tcl\tk8.6"
 
 
 build_exe_options = {"packages": ["os", "tkinter", "time", "threading", "imp", "SORv14", "MSOv10", "pandas", "numpy"], "excludes": [""], "include_files": [r"C:\Python34\DLLs\tcl86t.dll",
-                 r"C:\Python34\DLLs\tk86t.dll"] }
+                 r"C:\Python34\DLLs\tk86t.dll", r"C:\Users\Danie\PycharmProjects\ORSCORE-v3\Mouse_Icon.ico"] }
 
 base = None
 if sys.platform == "win32":

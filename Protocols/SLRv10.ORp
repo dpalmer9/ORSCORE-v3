@@ -310,7 +310,7 @@ def Create_Experiment():
         data_samp_Summary_filename = SOR_ID_Prompt.get() + "_Samp_Summary.csv"
         data_samp_Summary_filepath = data_file_dir + "\\" + data_samp_Summary_filename
         data_samp_Summary_file = open(data_samp_Summary_filepath, "w")
-        data_samp_Summary_file.write("'Date','Time','Animal_ID','Condition','Left_Object','Middle_Object','Right_Object','Left_Explore_Total','Middle_Explore_Total','Right_Explore_Total','Total_Exploration','Discrimination_Ratio'")
+        data_samp_Summary_file.write("'Date','Time','Animal_ID','Condition','Left_Object','Middle_Object','Right_Object','Left_Explore_Total','Middle_Explore_Total','Right_Explore_Total','Total_Exploration','Object_Preference'")
         data_samp_Summary_file.close()
 
         data_Choice_Summary_filename = SOR_ID_Prompt.get() + "_Choice_Summary.csv"
@@ -324,7 +324,7 @@ def Create_Experiment():
         exp_file = open(exp_filepath, "w")
         exp_file.write("#Protocol Details#")
         exp_file.write("\n")
-        exp_file.write("Protocol = SORv14")
+        exp_file.write("Protocol = SLRv10")
         exp_file.write("\n")
         exp_file.write("Experiment_ID = '%s'" % (SOR_ID_Prompt.get()))
         exp_file.write("\n")
@@ -705,11 +705,11 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
             if self.Condition_Csv == 1:
                 self.trial_raw_ID_position = self.run_ID_prompt.curselection()
                 self.trial_num_position = self.run_Drug_List.curselection()
-                self.trial_raw_ID = self.run_ID_prompt.get(self.trial_raw_ID_position[0])
-                self.trial_num = self.run_Drug_List.get(self.trial_num_position[0])
-                self.trial_raw_condition = self.Conditions_table.loc[(self.Conditions_table['AnimalID'] == self.trial_raw_ID) & (self.Conditions_table['Trial#'] == self.trial_num), 'Condition']
-                self.trial_novel = self.Conditions_table.loc[(self.Conditions_table['AnimalID'] == self.trial_raw_ID) & (self.Conditions_table['Trial#'] == self.trial_num), 'NovelSide(Left or Right)']
-                self.run_slr_type_choice = self.Conditions_table.loc[(self.Conditions_table['AnimalID'] == self.trial_raw_ID) & (self.Conditions_table['Trial#'] == self.trial_num), 'SLR Type(d=dissimilar s=similar)']
+                self.trial_raw_ID = str(self.run_ID_prompt.get(self.trial_raw_ID_position[0]))
+                self.trial_num = str(self.run_Drug_List.get(self.trial_num_position[0]))
+                self.trial_raw_condition = self.Conditions_table.loc[(self.Conditions_table['AnimalID'] == self.trial_raw_ID) & (self.Conditions_table['Trial#'] == self.trial_num), 'Condition'].to_string(index=False)
+                self.trial_novel = self.Conditions_table.loc[(self.Conditions_table['AnimalID'] == self.trial_raw_ID) & (self.Conditions_table['Trial#'] == self.trial_num), 'NovelSide(Left or Right)'].to_string(index=False)
+                self.run_slr_type_choice = self.Conditions_table.loc[(self.Conditions_table['AnimalID'] == self.trial_raw_ID) & (self.Conditions_table['Trial#'] == self.trial_num), 'SLR Type(d=dissimilar s=similar)'].to_string(index=False)
                 if self.run_slr_type_choice == "d":
                     self.SLR_Trial_Type = "d-SLR"
                 if self.run_slr_type_choice == "s":
@@ -915,10 +915,10 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
                 self.bout_explore = "Neither"
                 self.trial_record = str()
 
-                self.left_explore_length = 0
-                self.middle_explore_length = 0
+                self.left_explore_total = 0
+                self.middle_explore_total = 0
                 self.start_time = 0
-                self.right_explore_length = 0
+                self.right_explore_total = 0
                 self.time_elapsed = 0
                 self.total_explore = 0
                 self.bout_count = 0
@@ -1170,8 +1170,9 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
             self.trial_status_var_remaining_label.grid(row=3, column=2)
             self.trial_status_var_left_label = Label(self.trial_window, text="Left Explore")
             self.trial_status_var_left_label.grid(row=3, column=3)
-            self.trial_status_var_middle_label = Label(self.trial_window, text="Middle Explore")
-            self.trial_status_var_middle_label.grid(row=3, column=4)
+            if self.trial_phase != "Choice":
+                self.trial_status_var_middle_label = Label(self.trial_window, text="Middle Explore")
+                self.trial_status_var_middle_label.grid(row=3, column=4)
             self.trial_status_var_right_label = Label(self.trial_window, text="Right Explore")
             self.trial_status_var_right_label.grid(row=3, column=5)
             self.trial_status_total_elapsed = Label(self.trial_window, textvariable=self.time_elapsed_string)
@@ -1180,24 +1181,26 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
             self.trial_status_total_remaining.grid(row=4, column=2)
             self.trial_status_left_elapsed = Label(self.trial_window, textvariable=self.left_explore_length_string)
             self.trial_status_left_elapsed.grid(row=4, column=3)
-            self.trial_status_middle_elapsed = Label(self.trial_window, textvariable=self.middle_explore_length_string)
-            self.trial_status_middle_elapsed.grid(row=4, column=4)
+            if self.trial_phase != "Choice":
+                self.trial_status_middle_elapsed = Label(self.trial_window, textvariable=self.middle_explore_length_string)
+                self.trial_status_middle_elapsed.grid(row=4, column=4)
             self.trial_status_right_elapsed = Label(self.trial_window, textvariable=self.right_explore_length_string)
             self.trial_status_right_elapsed.grid(row=4, column=5)
 
             ## Object Exploration Status ##
             self.frame_left_explore_status = LabelFrame(self.trial_window, bg='white')
-            self.frame_left_explore_status.grid(row=5, column=3)
+            self.frame_left_explore_status.grid(row=5, column=2)
             self.left_explore_status = Label(self.frame_left_explore_status, text="Left Object")
             self.left_explore_status.pack()
 
-            self.frame_middle_explore_status = LabelFrame(self.trial_window, bg='white')
-            self.frame_middle_explore_status.grid(row=5, column=4)
-            self.middle_explore_status = Label(self.frame_middle_explore_status, text="Middle Object")
-            self.middle_explore_status.pack()
+            if self.trial_phase != "Choice":
+                self.frame_middle_explore_status = LabelFrame(self.trial_window, bg='white')
+                self.frame_middle_explore_status.grid(row=5, column=3)
+                self.middle_explore_status = Label(self.frame_middle_explore_status, text="Middle Object")
+                self.middle_explore_status.pack()
 
             self.frame_right_explore_status = LabelFrame(self.trial_window, bg='white')
-            self.frame_right_explore_status.grid(row=5, column=5)
+            self.frame_right_explore_status.grid(row=5, column=4)
             self.right_explore_status = Label(self.frame_right_explore_status, text="Right Object")
             self.right_explore_status.pack()
 
@@ -1206,11 +1209,6 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
                 self.trial_window.bind("<KeyRelease>", object_score_release)
             self.trial_window.bind("<space>", object_press_space)
 
-            if self.trial_phase == "Choice":
-                self.middle_explore_status.config(state=DISABLED)
-                self.frame_middle_explore_status.config(state=DISABLED)
-                self.trial_status_var_middle_label.config(state=DISABLED)
-                self.trial_status_middle_elapsed.config(state=DISABLED)
 
             self.trial_window.update()
             self.time_update()
@@ -1262,6 +1260,7 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
             self.time_elapsed_string.set(round(self.time_elapsed, 2))
             self.time_remaining_string.set(round(self.time_remaining, 2))
             self.left_explore_length_string.set(round(self.active_left_score, 2))
+            self.middle_explore_length_string.set(round(self.active_middle_score, 2))
             self.right_explore_length_string.set(round(self.active_right_score, 2))
             self.trial_window.after(10, self.time_update)
 
@@ -1292,11 +1291,9 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
                 self.active_bout.write(self.trial_record)
                 self.active_bout.close()
 
-                self.total_explore = self.left_explore_total + self.right_explore_total
-                if (self.Novel_Side == "Left") and (self.total_explore > 0):
-                    self.Discrimination_Ratio = (self.left_explore_total - self.right_explore_total) / (self.total_explore)
-                if (self.Novel_Side == "Right") and (self.total_explore > 0):
-                    self.Discrimination_Ratio = (self.right_explore_total - self.left_explore_total) / (self.total_explore)
+                self.total_explore = self.left_explore_total + self.right_explore_total + self.middle_explore_total
+                if self.total_explore > 0:
+                    self.Discrimination_Ratio = (self.left_explore_total) / (self.total_explore)
                 if (self.total_explore == 0):
                     self.Discrimination_Ratio = ""
 
@@ -1308,11 +1305,15 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
                 self.active_sum.write(",")
                 self.active_sum.write(self.trial_condition)
                 self.active_sum.write(",")
-                self.active_sum.write(self.trial_obj1)
+                self.active_sum.write(self.trial_objleft)
                 self.active_sum.write(",")
-                self.active_sum.write(self.trial_obj2)
+                self.active_sum.write(self.trial_objmiddle)
+                self.active_sum.write(",")
+                self.active_sum.write(self.trial_objright)
                 self.active_sum.write(",")
                 self.active_sum.write(str(self.left_explore_total))
+                self.active_sum.write(",")
+                self.active_sum.write(str(self.middle_explore_total))
                 self.active_sum.write(",")
                 self.active_sum.write(str(self.right_explore_total))
                 self.active_sum.write(",")
@@ -1348,9 +1349,9 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
                 self.active_sum.write(",")
                 self.active_sum.write(self.trial_condition)
                 self.active_sum.write(",")
-                self.active_sum.write(self.trial_obj1)
+                self.active_sum.write(self.trial_objleft)
                 self.active_sum.write(",")
-                self.active_sum.write(self.trial_obj2)
+                self.active_sum.write(self.trial_objright)
                 self.active_sum.write(",")
                 self.active_sum.write(self.Novel_Side)
                 self.active_sum.write(",")
