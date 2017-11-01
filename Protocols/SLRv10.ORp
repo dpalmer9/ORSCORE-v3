@@ -300,7 +300,7 @@ def Create_Experiment():
         data_samp_bout_file = open(data_samp_bout_filepath, "w")
         data_samp_bout_file.write("'Bout#','Bout_Start_Time','Bout_Side','Bout_Duration'")
         data_samp_bout_file.close()
-        
+
         data_Choice_bout_filename = SOR_ID_Prompt.get() + "_Choice_Bout.csv"
         data_Choice_bout_filepath = data_file_dir + "\\" + data_Choice_bout_filename
         data_Choice_bout_file = open(data_Choice_bout_filepath, "w")
@@ -376,7 +376,7 @@ def Create_Experiment():
             condition_csv_file = open(condition_csv_filepath, "w")
             condition_csv_file.write("[Conditions]")
             condition_csv_file.write("\n")
-            condition_csv_file.write("AnimalID,Trial#,SLR Type(d=dissimilar s=similar),NovelSide(Left or Right),Condition")
+            condition_csv_file.write("AnimalID,Trial#,NovelSide(Left or Right/NA if not known)")
             condition_csv_file.close()
 
         top_SOR.destroy()
@@ -567,8 +567,6 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
                 self.Conditions_ID = list(set(self.Conditions_ID))
                 self.Conditions_TrialNum = self.Conditions_table['Trial#'].tolist()
                 self.Conditions_TrialNum = list(set(self.Conditions_TrialNum))
-                self.Conditions_SLRType = self.Conditions_table['SLR Type(d=dissimilar s=similar)'].tolist()
-                self.Conditions_Condition = self.Conditions_table['Condition'].tolist()
 
             self.Trial_Setup_GUI()
 
@@ -587,7 +585,7 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
                 self.run_ID_prompt = Entry(self.top_run)
                 self.run_ID_prompt.grid(row=2, column=3)
             if self.Condition_Csv == 1:
-                self.run_ID_prompt = Listbox(self.top_run, selectmode=SINGLE,height=2,exportselection=FALSE)
+                self.run_ID_prompt = Listbox(self.top_run, selectmode=SINGLE,height=5,exportselection=FALSE)
                 self.run_ID_prompt.grid(row=2,column=3)
                 for id in self.Conditions_ID:
                     self.run_ID_prompt.insert(END,id)
@@ -606,7 +604,6 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
                 for trial in self.Conditions_TrialNum:
                     self.run_Drug_List.insert(END, trial)
 
-
             self.run_object_label = Label(self.top_run, text="Objects")
             self.run_object_label.grid(row=5, column=2)
 
@@ -617,7 +614,7 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
             self.run_objectleft_list.grid(row=7, column=1)
             for object in self.Object_List:
                 self.run_objectleft_list.insert(END, object)
-            
+
             self.run_objectmid_label = Label(self.top_run, text="Middle Object")
             self.run_objectmid_label.grid(row=6, column=2)
 
@@ -707,13 +704,9 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
                 self.trial_num_position = self.run_Drug_List.curselection()
                 self.trial_raw_ID = str(self.run_ID_prompt.get(self.trial_raw_ID_position[0]))
                 self.trial_num = str(self.run_Drug_List.get(self.trial_num_position[0]))
-                self.trial_raw_condition = self.Conditions_table.loc[(self.Conditions_table['AnimalID'] == self.trial_raw_ID) & (self.Conditions_table['Trial#'] == self.trial_num), 'Condition'].to_string(index=False)
-                self.trial_novel = self.Conditions_table.loc[(self.Conditions_table['AnimalID'] == self.trial_raw_ID) & (self.Conditions_table['Trial#'] == self.trial_num), 'NovelSide(Left or Right)'].to_string(index=False)
-                self.run_slr_type_choice = self.Conditions_table.loc[(self.Conditions_table['AnimalID'] == self.trial_raw_ID) & (self.Conditions_table['Trial#'] == self.trial_num), 'SLR Type(d=dissimilar s=similar)'].to_string(index=False)
-                if self.run_slr_type_choice == "d":
-                    self.SLR_Trial_Type = "d-SLR"
-                if self.run_slr_type_choice == "s":
-                    self.SLR_Trial_Type = "s-SLR"
+                self.trial_raw_condition = "NA"
+                self.trial_novel = self.Conditions_table.loc[(self.Conditions_table['AnimalID'] == self.trial_raw_ID) & (self.Conditions_table['Trial#'] == self.trial_num), 'NovelSide(Left or Right/NA if not known)'].to_string(index=False)
+                self.SLR_Trial_Type = "NA"
 
             self.trial_import_data.append(self.Experiment_ID)
 
@@ -747,7 +740,7 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
             self.trial_raw_mid_position = self.run_objectmid_list.curselection()
             self.trial_raw_mid = self.run_objectmid_list.get(self.trial_raw_mid_position[0])
             self.trial_import_data.append(self.trial_raw_mid)
-            
+
             self.trial_raw_right = str()
             self.trial_raw_right_position = self.run_objectright_list.curselection()
             self.trial_raw_right = self.run_objectright_list.get(self.trial_raw_right_position[0])
@@ -1248,6 +1241,10 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
                     self.additional_novel = self.additional_right
                     self.additional_familiar = self.additional_left
                     self.additional_discrim_ratio = (self.additional_right - self.additional_left) / (self.additional_left + self.additional_right)
+                elif (self.Novel_Side == "NA"):
+                    self.additional_novel = self.additional_left
+                    self.additional_familiar = self.additional_right
+                    self.additional_discrim_ratio = (self.additional_left - self.additional_right) / (self.additional_left + self.additional_right)
                 self.Additional_Measure = 0
             if ((self.time_elapsed >= self.Sample_Max) and ((self.trial_phase == "Sample") or (self.trial_phase == "Both"))) or (
                         (self.time_elapsed >= self.Choice_Max) and (self.trial_phase == "Choice")):
@@ -1339,6 +1336,11 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
                     self.novel_explore = self.right_explore_total
                     self.familiar_explore = self.left_explore_total
                     self.Discrimination_Ratio = (self.right_explore_total - self.left_explore_total) / (
+                    self.total_explore)
+                if self.Novel_Side == "NA":
+                    self.novel_explore = self.left_explore_total
+                    self.familiar_explore = self.right_explore_total
+                    self.Discrimination_Ratio = (self.left_explore_total - self.right_explore_total) / (
                     self.total_explore)
 
                 self.active_sum = open(self.sum_file, 'a')
