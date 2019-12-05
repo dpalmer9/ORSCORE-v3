@@ -8,6 +8,7 @@ from threading import Thread
 import imp
 import pandas as pd
 import numpy as np
+import pygame
 
 
 
@@ -31,7 +32,7 @@ for file in os.listdir(exp_dir):
     if file.endswith(".ORe"):
         Active_Exp.append(file)
 
-Active_Exp = [exp_names.strip(".ORe") for exp_names in Active_Exp]
+Active_Exp = [exp_names.replace(".ORe","") for exp_names in Active_Exp]
 
 ## Get List of Available Protocols ##
 Active_Prot = list()
@@ -39,7 +40,7 @@ for prot in os.listdir(protocol_dir):
     if prot.endswith(".ORp"):
         Active_Prot.append(prot)
 
-Active_Prot = [prot_file.strip(".ORp") for prot_file in Active_Prot]
+Active_Prot = [prot_file.replace(".ORp","") for prot_file in Active_Prot]
 
 
 ## Establish Main Window ##
@@ -134,7 +135,9 @@ def Experiment_Command_Create():
     Protocol_List = Listbox(create_window,selectmode=BROWSE)
     for protocol in Active_Prot:
         Protocol_List.insert(END,protocol)
-    Protocol_List.grid(row=1, column=1)
+    Protocol_List.grid(row=1, column=1,sticky=(N,W,E,S))
+    Protocol_Scroll = Scrollbar(create_window, orient=VERTICAL,command=Protocol_List.yview)
+    Protocol_Scroll.grid(row=1,column=2,sticky=(N,S))
     Protocol_Select = Button(create_window, text="Select Protocol", command=Create_Command)
     Protocol_Select.grid(row=2, column=1)
 
@@ -149,7 +152,7 @@ title.grid(row=1, column=2)
 author = Label(top, text="Created by: Daniel Palmer, PhD")
 author.grid(row=2, column=2)
 
-Curr_Version = Label(top, text="Current Version: 1.00")
+Curr_Version = Label(top, text="Current Version: 1.10")
 Curr_Version.grid(row=3, column=2)
 
 
