@@ -168,6 +168,8 @@ def Create_Experiment():
             global Key_Setting
             global Numkey_Setting
             Numkey_Setting = num_key_setting.get()
+            if(Numkey_Setting == 0):
+                Numkey_Setting = 1
             Key_Setting = key_func.get()
             top_keybind.destroy()
 
@@ -432,7 +434,7 @@ def Create_Experiment():
         exp_file = open(exp_filepath, "w")
         exp_file.write("#Protocol Details#")
         exp_file.write("\n")
-        exp_file.write("Protocol = MSOv10")
+        exp_file.write("Protocol = MSO")
         exp_file.write("\n")
         exp_file.write("Experiment_ID = '%s'" % (SOR_ID_Prompt.get()))
         exp_file.write("\n")
@@ -842,6 +844,7 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
             self.odd_explore_total = 0
             self.active_explore_normal = 0
             self.active_explore_odd = 0
+            self.active_total_explore = 0
 
             self.explore_total = 0
 
@@ -929,6 +932,7 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
                 self.odd_explore_total = 0
                 self.active_explore_normal = 0
                 self.active_explore_odd = 0
+                self.active_total_explore = 0
 
                 self.explore_total = 0
 
@@ -1528,7 +1532,7 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
                 self.time_elapsed = 0
                 self.time_remaining = 0
             if (self.start_time != 0) and (self.trial_active == True):
-                self.time_elapsed = time.time() - self.start_time
+                self.time_elapsed = time.time() - self.start_time - self.pause_length
                 self.time_remaining = self.Explore_Max - self.time_elapsed
             if (self.start_time != 0) and (self.trial_active == False):
                 self.time_elapsed = self.time_elapsed
@@ -1544,19 +1548,19 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
                 self.active_total_explore = self.active_explore_normal + self.active_explore_odd
             if self.Numkey_Setup == 1:
                 if (self.trial_active == True) and (self.bout_active == True) and (self.bout_explore == "1"):
-                    self.scoring_1 = (time.time() - self.bout_start)
+                    self.scoring_1 = ((time.time() - self.pause_length) - self.bout_start)
                     self.active_explore_1 = self.explore_1_total + self.scoring_1
                 if (self.trial_active == True) and (self.bout_active == True) and (self.bout_explore == "2"):
-                    self.scoring_2 = (time.time() - self.bout_start)
+                    self.scoring_2 = ((time.time() - self.pause_length) - self.bout_start)
                     self.active_explore_2 = self.explore_2_total + self.scoring_2
                 if (self.trial_active == True) and (self.bout_active == True) and (self.bout_explore == "3"):
-                    self.scoring_3 = (time.time() - self.bout_start)
+                    self.scoring_3 = ((time.time() - self.pause_length) - self.bout_start)
                     self.active_explore_3 = self.explore_3_total + self.scoring_3
                 if (self.trial_active == True) and (self.bout_active == True) and (self.bout_explore == "4"):
-                    self.scoring_4 = (time.time() - self.bout_start)
+                    self.scoring_4 = ((time.time() - self.pause_length) - self.bout_start)
                     self.active_explore_4 = self.explore_4_total + self.scoring_4
                 if (self.trial_active == True) and (self.bout_active == True) and (self.bout_explore == "5"):
-                    self.scoring_5 = (time.time() - self.bout_start)
+                    self.scoring_5 = ((time.time() - self.pause_length) - self.bout_start)
                     self.active_explore_5 = self.explore_5_total + self.scoring_5
                 self.active_total_explore = self.active_explore_1 + self.active_explore_2 + self.active_explore_3 + self.active_explore_4 + self.active_explore_5
 
