@@ -7,70 +7,181 @@ import configparser
 
 import keyboard
 
-
 # Class - Experiment Configuration
 
 class ExperimentConfigure:
     def __init__(self):
-        self.toplevel = Toplevel()
+        # Initialize ConfigParser object
+        self.experiment_config = configparser.ConfigParser()
+
+        # Initialize parameters
+        self.condition_list = list()
+        self.object_list = list()
+
+        # Construct Primary GUI
+        self.construct_gui()
+
+    def construct_gui(self):
+        # GUI
+        toplevel = Toplevel()
         icon_path = current_dir + "\\" + "Mouse_Icon.ico"
-        self.toplevel.iconbitmap(icon_path)
+        toplevel.iconbitmap(icon_path)
 
-        self.window_title = Label(self.toplevel, text="SOR Experiment Creator")
-        self.window_title.grid(row=1, column=2)
+        window_title = Label(toplevel, text="SOR Experiment Creator")
+        window_title.grid(row=1, column=2)
 
-        self.id_label = Label(self.toplevel, text="Experiment ID: ")
-        self.id_label.grid(row=2, column=1)
+        id_label = Label(toplevel, text="Experiment ID: ")
+        id_label.grid(row=2, column=1)
 
-        self.id_prompt = Entry(self.toplevel)
-        self.id_prompt.grid(row=2, column=2)
+        id_prompt = Entry(toplevel)
+        id_prompt.grid(row=2, column=2)
 
-        self.sample_cutoff_label = Label(self.toplevel, text="Sample Exploration Cutoff (sec): ")
-        self.sample_cutoff_label.grid(row=3, column=1)
+        sample_cutoff_label = Label(toplevel, text="Sample Exploration Cutoff (sec): ")
+        sample_cutoff_label.grid(row=3, column=1)
 
-        self.sample_cutoff_entry = Entry(self.toplevel, width=4)
-        self.sample_cutoff_entry.grid(row=3, column=2)
+        sample_cutoff_entry = Entry(toplevel, width=4)
+        sample_cutoff_entry.grid(row=3, column=2)
 
-        self.sample_max_label = Label(self.toplevel, text="Sample Exploration Maximum (sec): ")
-        self.sample_max_label.grid(row=4, column=1)
+        sample_max_label = Label(toplevel, text="Sample Exploration Maximum (sec): ")
+        sample_max_label.grid(row=4, column=1)
 
-        self.sample_max_entry = Entry(self.toplevel, width=4)
-        self.sample_max_entry.grid(row=4, column=2)
+        sample_max_entry = Entry(toplevel, width=4)
+        sample_max_entry.grid(row=4, column=2)
 
-        self.choice_cutoff_label = Label(self.toplevel, text="Choice Exploration Cutoff (sec): ")
-        self.choice_cutoff_label.grid(row=5, column=1)
+        choice_cutoff_label = Label(toplevel, text="Choice Exploration Cutoff (sec): ")
+        choice_cutoff_label.grid(row=5, column=1)
 
-        self.choice_cutoff_entry = Entry(self.toplevel, width=4)
-        self.choice_cutoff_entry.grid(row=5, column=2)
+        choice_cutoff_entry = Entry(toplevel, width=4)
+        choice_cutoff_entry.grid(row=5, column=2)
 
-        self.choice_max_label = Label(self.toplevel, text="Choice Exploration Maximum (sec): ")
-        self.choice_max_label.grid(row=6, column=1)
+        choice_max_label = Label(toplevel, text="Choice Exploration Maximum (sec): ")
+        choice_max_label.grid(row=6, column=1)
 
-        self.choice_max_entry = Entry(self.toplevel, width=4)
-        self.choice_max_entry.grid(row=6, column=2)
+        choice_max_entry = Entry(toplevel, width=4)
+        choice_max_entry.grid(row=6, column=2)
 
-        self.choice_add_time_label = Label(self.toplevel, text="Additional Choice Measure Time (sec): ")
-        self.choice_add_time_label.grid(row=7, column=1)
+        choice_add_time_label = Label(toplevel, text="Additional Choice Measure Time (sec): ")
+        choice_add_time_label.grid(row=7, column=1)
 
-        self.choice_add_time_entry = Entry(self.toplevel, width=4)
-        self.choice_add_time_entry.grid(row=7, column=2)
+        choice_add_time_entry = Entry(toplevel, width=4)
+        choice_add_time_entry.grid(row=7, column=2)
 
-        self.condition_button = Button(self.toplevel, text="Conditions")
-        self.condition_button.grid(row=8, column=2)
+        condition_button = Button(toplevel, text="Conditions", command=self.condition_gui)
+        condition_button.grid(row=8, column=2)
 
-        self.object_list_button = Button(self.toplevel, text="Object List")
-        self.object_list_button.grid(row=9, column=2)
+        object_list_button = Button(toplevel, text="Object List", command=self.object_pair_gui)
+        object_list_button.grid(row=9, column=2)
 
-        self.keybinding_button = Button(self.toplevel, text="Key Bindings")
-        self.keybinding_button.grid(row=10, column=2)
+        keybinding_button = Button(toplevel, text="Key Bindings")
+        keybinding_button.grid(row=10, column=2)
 
-        self.save_close_button = Button(self.toplevel, text="Save and Close")
-        self.save_close_button.grid(row=11, column=2)
+        save_close_button = Button(toplevel, text="Save and Close")
+        save_close_button.grid(row=11, column=2)
 
-        Key_Setting = 1
+        key_setting = 1
 
-        ## Run Window Command ##
-        self.toplevel.mainloop()
+        # Run Window Command
+        toplevel.mainloop()
+
+    def condition_gui(self):
+        condition_window = Toplevel()
+        icon_path = current_dir + "\\" + "Mouse_Icon.ico"
+        condition_window.iconbitmap(icon_path)
+
+        condition_title = Label(condition_window, text="Condition List")
+        condition_title.grid(row=1, column=2)
+
+        condition_listbox = Listbox(condition_window, selectmode=BROWSE)
+        for condition in self.condition_list:
+            condition_listbox.insert(END, condition)
+        condition_listbox.grid(row=2, column=2)
+
+        condition_input = Entry(condition_window)
+        condition_input.grid(row=3, column=2)
+
+        def condition_add():
+            new_condition = condition_input.get()
+            condition_listbox.insert(END, new_condition)
+            self.condition_list.append(new_condition)
+            condition_input.delete(0, END)
+
+        def condition_remove():
+            condition_sel = condition_listbox.curselection()
+            condition_name = condition_listbox.get(condition_sel[0])
+            self.condition_list.remove(condition_name)
+            condition_listbox.delete(condition_sel)
+
+        # SOR Done
+        def condition_done():
+            condition_window.destroy()
+            self.experiment_config['Condition Parameters'] = {}
+            self.experiment_config['Condition Parameters']['conditions'] = ','.join(self.condition_list)
+
+        condition_add_button = Button(condition_window, text="Add", command=condition_add)
+        condition_add_button.grid(row=4, column=1)
+
+        condition_remove_button = Button(condition_window, text="Remove", command=condition_remove)
+        condition_remove_button.grid(row=4, column=3)
+
+        condition_done_button = Button(condition_window, text="Done", command=condition_done)
+        condition_done_button.grid(row=5, column=2)
+
+        condition_window.focus_force()
+        condition_window.mainloop()
+
+    def object_pair_gui(self):
+        object_pair_window = Toplevel()
+        icon_path = current_dir + "\\" + "Mouse_Icon.ico"
+        object_pair_window.iconbitmap(icon_path)
+
+        # Add Object Pair
+        def object_pair_add():
+            object1 = object_pair_entry.get()
+            object_pair_listbox.insert(END, object1)
+            self.object_list.append(object1)
+            object_pair_entry.delete(0, END)
+
+        # Remove Object Pair
+        def object_pair_remove():
+            remove_set = object_pair_listbox.curselection()
+            object_pair_identity_name = object_pair_listbox.get(remove_set[0])
+            object_pair_listbox.delete(object_pair_identity_name)
+            self.object_list.remove(remove_set)
+
+        # Done
+        def object_pair_done():
+            object_pair_window.destroy()
+            self.experiment_config['Object List'] = {}
+            self.experiment_config['Object List']['objects'] = ','.join(self.object_list)
+
+        # Window Configuration
+
+        object_pair_title = Label(object_pair_window, text="Object List")
+        object_pair_title.grid(row=1, column=2)
+
+        object_pair_listbox = Listbox(object_pair_window, selectmode=BROWSE)
+        for pair in self.object_list:
+            object_pair_listbox.insert(END, pair)
+        object_pair_listbox.grid(row=2, column=2)
+
+        object_pair_object1_label = Label(object_pair_window, text="Object")
+        object_pair_object1_label.grid(row=3, column=2)
+
+        object_pair_entry = Entry(object_pair_window)
+        object_pair_entry.grid(row=4, column=2)
+
+        object_pair_add_button = Button(object_pair_window, text="Add", command=object_pair_add)
+        object_pair_add_button.grid(row=5, column=2)
+
+        object_pair_remove_button = Button(object_pair_window, text="Remove", command=object_pair_remove)
+        object_pair_remove_button.grid(row=6, column=2)
+
+        object_pair_done_button = Button(object_pair_window, text="Done", command=object_pair_done)
+        object_pair_done_button.grid(row=7, column=2)
+
+        object_pair_window.focus_force()
+        object_pair_window.mainloop()
+
 
 
 # Find Current Directory
