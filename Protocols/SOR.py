@@ -4,19 +4,36 @@ import time
 from tkinter import *  # Access Tkinter modules without calling to Tkinter
 import csv
 import configparser
+import sys
 
 import keyboard
+import pandas as pd
 
 # Class - Experiment Configuration
 
 class ExperimentConfigure:
     def __init__(self):
+        self.curr_dir = os.getcwd()
+        if sys.platform == 'linux' or sys.platform == 'darwin':
+            self.folder_symbol = '/'
+        elif sys.platform == 'win32':
+            self.folder_symbol = '\\'
+        self.experiment_folder = self.curr_dir + self.folder_symbol + 'Experiments' + self.folder_symbol
         # Initialize ConfigParser object
         self.experiment_config = configparser.ConfigParser()
 
         # Initialize parameters
         self.condition_list = list()
         self.object_list = list()
+        self.key_dict = dict()
+
+        # String Var for input fields
+        self.experiment_id_string_var = StringVar()
+        self.sample_cutoff_string_var = StringVar()
+        self.sample_max_string_var = StringVar()
+        self.choice_cutoff_string_var = StringVar()
+        self.choice_max_string_var = StringVar()
+        self.additonal_measure_string_var = StringVar()
 
         # Construct Primary GUI
         self.construct_gui()
@@ -33,37 +50,37 @@ class ExperimentConfigure:
         id_label = Label(toplevel, text="Experiment ID: ")
         id_label.grid(row=2, column=1)
 
-        id_prompt = Entry(toplevel)
+        id_prompt = Entry(toplevel, textvariable=self.experiment_id_string_var)
         id_prompt.grid(row=2, column=2)
 
         sample_cutoff_label = Label(toplevel, text="Sample Exploration Cutoff (sec): ")
         sample_cutoff_label.grid(row=3, column=1)
 
-        sample_cutoff_entry = Entry(toplevel, width=4)
+        sample_cutoff_entry = Entry(toplevel, width=4, textvariable=self.sample_cutoff_string_var)
         sample_cutoff_entry.grid(row=3, column=2)
 
         sample_max_label = Label(toplevel, text="Sample Exploration Maximum (sec): ")
         sample_max_label.grid(row=4, column=1)
 
-        sample_max_entry = Entry(toplevel, width=4)
+        sample_max_entry = Entry(toplevel, width=4, textvariable=self.sample_max_string_var)
         sample_max_entry.grid(row=4, column=2)
 
         choice_cutoff_label = Label(toplevel, text="Choice Exploration Cutoff (sec): ")
         choice_cutoff_label.grid(row=5, column=1)
 
-        choice_cutoff_entry = Entry(toplevel, width=4)
+        choice_cutoff_entry = Entry(toplevel, width=4, textvariable=self.choice_cutoff_string_var)
         choice_cutoff_entry.grid(row=5, column=2)
 
         choice_max_label = Label(toplevel, text="Choice Exploration Maximum (sec): ")
         choice_max_label.grid(row=6, column=1)
 
-        choice_max_entry = Entry(toplevel, width=4)
+        choice_max_entry = Entry(toplevel, width=4, textvariable=self.choice_max_string_var)
         choice_max_entry.grid(row=6, column=2)
 
         choice_add_time_label = Label(toplevel, text="Additional Choice Measure Time (sec): ")
         choice_add_time_label.grid(row=7, column=1)
 
-        choice_add_time_entry = Entry(toplevel, width=4)
+        choice_add_time_entry = Entry(toplevel, width=4, textvariable=self.additonal_measure_string_var)
         choice_add_time_entry.grid(row=7, column=2)
 
         condition_button = Button(toplevel, text="Conditions", command=self.condition_gui)
@@ -72,13 +89,12 @@ class ExperimentConfigure:
         object_list_button = Button(toplevel, text="Object List", command=self.object_pair_gui)
         object_list_button.grid(row=9, column=2)
 
-        keybinding_button = Button(toplevel, text="Key Bindings")
+        keybinding_button = Button(toplevel, text="Key Bindings", command=self.keybinding_gui)
         keybinding_button.grid(row=10, column=2)
 
-        save_close_button = Button(toplevel, text="Save and Close")
+        save_close_button = Button(toplevel, text="Save and Close",
+                                   command=lambda: self.save_close_experiment(toplevel))
         save_close_button.grid(row=11, column=2)
-
-        key_setting = 1
 
         # Run Window Command
         toplevel.mainloop()
@@ -182,139 +198,7 @@ class ExperimentConfigure:
         object_pair_window.focus_force()
         object_pair_window.mainloop()
 
-
-
-# Find Current Directory
-current_dir = os.getcwd()
-
-exp_folder = "\\Experiments"
-data_folder = "\\Data"
-protocol_folder = "\\Protocols"
-
-current_dir.replace("\\Protocols", "")
-experiment_dir = current_dir + exp_folder
-data_dir = current_dir + data_folder
-
-
-
-# SOR Variable List - Create
-conditions_list = list()
-object_pairs_list = list()
-left_keybind = "a"
-right_keybind = "l"
-key_setting = "1"
-
-# SOR - Create Experiment Function
-
-
-def create_experiment():
-    # SOR Create Conditions
-    def sor_create_condition():
-        condition_window = Toplevel()
-        icon_path = current_dir + "\\" + "Mouse_Icon.ico"
-        condition_window.iconbitmap(icon_path)
-
-        # SOR Add Condition
-
-        def condition_add():
-            condition = condition_input.get()
-            conditions_list.append(condition)
-            condition_list.insert(END, condition)
-            condition_input.delete(0, END)
-
-        # SOR Remove Condition
-        def condition_remove():
-            condition = condition_list.curselection()
-            condition_name = condition_list.get(condition[0])
-            condition_pos = conditions_list.index(condition_name)
-            conditions_list.remove(conditions_list[condition_pos])
-            condition_list.delete(condition[0])
-
-        # SOR Done
-        def condition_done():
-            condition_window.destroy()
-
-            # Window Setup
-
-        condition_title = Label(condition_window, text="Condition List")
-        condition_title.grid(row=1, column=2)
-
-        condition_list = Listbox(condition_window, selectmode=BROWSE)
-        for condition in conditions_list:
-            condition_list.insert(END, condition)
-        condition_list.grid(row=2, column=2)
-
-        condition_input = Entry(condition_window)
-        condition_input.grid(row=3, column=2)
-
-        condition_add_button = Button(condition_window, text="Add", command=condition_add)
-        condition_add_button.grid(row=4, column=1)
-
-        condition_remove_button = Button(condition_window, text="Remove", command=condition_remove)
-        condition_remove_button.grid(row=4, column=3)
-
-        condition_done_button = Button(condition_window, text="Done", command=condition_done)
-        condition_done_button.grid(row=5, column=2)
-
-        condition_window.focus_force()
-        condition_window.mainloop()
-        return
-
-    # SOR Object Pairs
-    def sor_objectpairs():
-        objectpair_window = Toplevel()
-        icon_path = current_dir + "\\" + "Mouse_Icon.ico"
-        objectpair_window.iconbitmap(icon_path)
-
-        # Add Object Pair
-        def objectpair_add():
-            object1 = objectpair_object1.get()
-            objectpair_list.insert(END, object1)
-            object_pairs_list.append(object1)
-            objectpair_object1.delete(0,END)
-
-        # Remove Object Pair
-        def objectpair_remove():
-            removeset = objectpair_list.curselection()
-            objectpair_identity_name = objectpair_list.get(removeset[0])
-            objectpair_location = object_pairs_list.index(objectpair_identity_name)
-            object_pairs_list.remove(object_pairs_list[objectpair_location])
-            objectpair_list.delete(removeset[0])
-
-        # Done
-        def objectpair_done():
-            objectpair_window.destroy()
-
-        # Window Configuration
-
-        objectpair_title = Label(objectpair_window, text="Object List")
-        objectpair_title.grid(row=1, column=2)
-
-        objectpair_list = Listbox(objectpair_window, selectmode=BROWSE)
-        for pair in object_pairs_list:
-            objectpair_list.insert(END, pair)
-        objectpair_list.grid(row=2, column=2)
-
-        objectpair_object1_label = Label(objectpair_window, text="Object")
-        objectpair_object1_label.grid(row=3, column=2)
-
-        objectpair_object1 = Entry(objectpair_window)
-        objectpair_object1.grid(row=4, column=2)
-
-        objectpair_add_button = Button(objectpair_window, text="Add", command=objectpair_add)
-        objectpair_add_button.grid(row=5, column=2)
-
-        objectpair_remove_button = Button(objectpair_window, text="Remove", command=objectpair_remove)
-        objectpair_remove_button.grid(row=6, column=2)
-
-        objectpair_done_button = Button(objectpair_window, text="Done", command=objectpair_done)
-        objectpair_done_button.grid(row=7, column=2)
-
-        objectpair_window.focus_force()
-        objectpair_window.mainloop()
-
-    # Keybinding Menu
-    def sor_keybind():
+    def keybinding_gui(self):
         top_keybind = Toplevel()
         icon_path = current_dir + "\\" + "Mouse_Icon.ico"
         top_keybind.iconbitmap(icon_path)
@@ -325,47 +209,21 @@ def create_experiment():
         key_bind_left_string = StringVar()
         key_bind_left_string.set("a")
 
-        ## Functions ##
         def keybind_done():
-            nonlocal Key_Setting
-            Key_Setting = key_func.get()
+            self.key_dict['mode'] = key_func.get()
+            self.experiment_config['Key Bindings'] = self.key_dict
             top_keybind.destroy()
 
         def keybind_func_left():
             left_key = keyboard.read_key()
-            # def key_press(event):
-                # global Left_Keybind
-                #key = pygame.key.
-                # key = event.char
-                # Left_Keybind = str(key)
-                # key_bind_left_string.set(Left_Keybind)
-                # top_keybind_left.destroy()
-                # return
-
-            # top_keybind_left = Toplevel()
-            # top_keybind_label = Label(top_keybind_left, text="Bind Left Key")
-            # top_keybind_label.grid(row=1, column=1)
-            # top_keybind_left.bind('<Key>', key_press)
-            # top_keybind_left.focus_force()
-            # top_keybind_left.mainloop()
+            self.key_dict['left'] = left_key
+            key_bind_left_string.set(left_key)
 
         def keybind_func_right():
-            def key_press(event):
-                global Right_Keybind
-                key = event.char
-                Right_Keybind = str(key)
-                key_bind_right_string.set(Right_Keybind)
-                top_keybind_right.destroy()
-                return
+            right_key = keyboard.read_key()
+            self.key_dict['right'] = right_key
+            key_bind_right_string.set(right_key)
 
-            top_keybind_right = Toplevel()
-            top_keybind_label = Label(top_keybind_right, text="Bind Right Key")
-            top_keybind_label.grid(row=1, column=1)
-            top_keybind_right.bind('<Key>', key_press)
-            top_keybind_right.focus_force()
-            top_keybind_right.mainloop()
-
-        ## Window Configuration ##
         keybind_label = Label(top_keybind, text="Keybinding")
         keybind_label.grid(row=1, column=1)
 
@@ -391,14 +249,13 @@ def create_experiment():
         keybind_left_bind_button = Button(top_keybind, text="Bind", command=keybind_func_left)
         keybind_left_bind_button.grid(row=5, column=3)
 
-
         keybind_right_label = Label(top_keybind, text="Right Object Key")
         keybind_right_label.grid(row=6, column=1)
 
         keybind_right = Label(top_keybind, textvariable=key_bind_right_string)
         keybind_right.grid(row=6, column=2)
 
-        keybind_right_bind_button = Button(top_keybind, text="Bind", command= keybind_func_right)
+        keybind_right_bind_button = Button(top_keybind, text="Bind", command=keybind_func_right)
         keybind_right_bind_button.grid(row=6, column=3)
 
         keybind_done_button = Button(top_keybind, text="Done", command=keybind_done)
@@ -407,7 +264,73 @@ def create_experiment():
         top_keybind.focus_force()
         top_keybind.mainloop()
 
+    def save_close_experiment(self,tk_level):
+        self.experiment_config['Experiment Details'] = {}
+        self.experiment_config['Experiment Details']['experiment_name'] = self.experiment_id_string_var.get()
 
+        self.experiment_config['Time Parameters'] = {}
+        self.experiment_config['Time Parameters']['sample_cutoff'] = self.sample_cutoff_string_var.get()
+        self.experiment_config['Time Parameters']['sample_max'] = self.sample_max_string_var.get()
+        self.experiment_config['Time Parameters']['choice_cutoff'] = self.choice_cutoff_string_var.get()
+        self.experiment_config['Time Parameters']['choice_max'] = self.choice_max_string_var.get()
+        self.experiment_config['Time Parameters']['additional_time'] = self.additonal_measure_string_var.get()
+
+        config_filepath = self.experiment_folder + self.experiment_id_string_var.get() + '.ini'
+
+        with open(config_filepath, 'w') as config_file:
+            self.experiment_config.write(config_file)
+
+        # Data files
+        data_folderpath = self.curr_dir + self.folder_symbol + 'Data' + self.folder_symbol + \
+                          self.experiment_id_string_var.get() + self.folder_symbol
+        sample_bout_filepath = data_folderpath + self.experiment_id_string_var.get() + '_Sample_Bout.csv'
+        sample_summary_filepath = data_folderpath + self.experiment_id_string_var.get() + '_Sample_Summary.csv'
+        choice_bout_filepath = data_folderpath + self.experiment_id_string_var.get() + '_Choice_Bout.csv'
+        choice_summary_filepath = data_folderpath + self.experiment_id_string_var.get() + '_Choice_Summary.csv'
+
+        bout_pd = pd.DataFrame(columns=['Bout#', 'Bout_Start_Time', 'Bout_Side', 'Bout_Duration'])
+        sample_pd = pd.DataFrame(columns=['Date', 'Time', 'Animal_ID', 'Condition', 'Left_Object','Right_Object',
+                                          'Left_Explore_Total', 'Right_Explore_Total', 'Total_Exploration',
+                                          'Discrimination_Ratio'])
+        choice_pd = pd.DataFrame(columns=['Date','Time', 'Animal_ID', 'Condition', 'Left_Object', 'Right_Object',
+                                          'Novel_Side', 'Delay', 'Novel_Explore_Total', 'Familiar_Explore_Total',
+                                          'Total_Exploration', 'Discrimination_Ratio', '%d_Novel_Explore',
+                                          '%d_Familiar_Explore', '%d_Discrimination_Ratio'])
+
+        bout_pd.to_csv(sample_bout_filepath, index=False)
+        bout_pd.to_csv(choice_bout_filepath, index=False)
+        sample_pd.to_csv(sample_summary_filepath, index=False)
+        choice_pd.to_csv(choice_summary_filepath, index=False)
+
+        tk_level.destroy()
+
+
+
+
+# Find Current Directory
+current_dir = os.getcwd()
+
+exp_folder = "\\Experiments"
+data_folder = "\\Data"
+protocol_folder = "\\Protocols"
+
+current_dir.replace("\\Protocols", "")
+experiment_dir = current_dir + exp_folder
+data_dir = current_dir + data_folder
+
+# SOR Variable List - Create
+conditions_list = list()
+object_pairs_list = list()
+left_keybind = "a"
+right_keybind = "l"
+key_setting = "1"
+
+# SOR - Create Experiment Function
+
+
+def create_experiment():
+
+    # Keybinding Menu
     ## Finish: Save Function ##
     def SOR_Finish():
         nonlocal Key_Setting

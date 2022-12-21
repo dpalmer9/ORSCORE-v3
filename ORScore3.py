@@ -35,10 +35,10 @@ sys.path.insert(0, protocol_dir)
 active_exp = list()
 print(exp_dir)
 for file in os.listdir(exp_dir):
-    if file.endswith(".ORe"):
+    if file.endswith(".ini"):
         active_exp.append(file)
 
-active_exp = [exp_names.replace(".ORe", "") for exp_names in active_exp]
+active_exp = [exp_names.replace(".ini", "") for exp_names in active_exp]
 
 # Get List of Available Protocols
 active_prot = list()
@@ -99,10 +99,10 @@ def experiment_command_delete():
     curr_exp_list.delete(0, END)
     active_exp = list()
     for experiments in os.listdir(exp_dir):
-        if file.endswith(".ORe"):
+        if file.endswith(".ini"):
             active_exp.append(experiments)
 
-    active_exp = [exp_names.strip(".ORe") for exp_names in active_exp]
+    active_exp = [exp_names.strip(".ini") for exp_names in active_exp]
     for experiments in active_exp:
         curr_exp_list.insert(END, experiments)
 
@@ -137,10 +137,10 @@ def experiment_command_create():
         curr_exp_list.delete(0, END)
         active_exp = list()
         for experiments in os.listdir(exp_dir):
-            if experiments.endswith(".ORe"):
+            if experiments.endswith(".ini"):
                 active_exp.append(file)
 
-        active_exp = [exp_names.strip(".ORe") for exp_names in active_exp]
+        active_exp = [exp_names.strip(".ini") for exp_names in active_exp]
         for experiments in active_exp:
             curr_exp_list.insert(END, experiments)
 
