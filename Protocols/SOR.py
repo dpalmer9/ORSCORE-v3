@@ -23,31 +23,31 @@ class ExperimentConfigure:
         self.id_label.grid(row=2, column=1)
 
         self.id_prompt = Entry(self.toplevel)
-        self.id_prompt.grid(row=2, column=3)
+        self.id_prompt.grid(row=2, column=2)
 
         self.sample_cutoff_label = Label(self.toplevel, text="Sample Exploration Cutoff (sec): ")
         self.sample_cutoff_label.grid(row=3, column=1)
 
         self.sample_cutoff_entry = Entry(self.toplevel, width=4)
-        self.sample_cutoff_entry.grid(row=3, column=3)
+        self.sample_cutoff_entry.grid(row=3, column=2)
 
         self.sample_max_label = Label(self.toplevel, text="Sample Exploration Maximum (sec): ")
         self.sample_max_label.grid(row=4, column=1)
 
         self.sample_max_entry = Entry(self.toplevel, width=4)
-        self.sample_max_entry.grid(row=4, column=3)
+        self.sample_max_entry.grid(row=4, column=2)
 
         self.choice_cutoff_label = Label(self.toplevel, text="Choice Exploration Cutoff (sec): ")
         self.choice_cutoff_label.grid(row=5, column=1)
 
         self.choice_cutoff_entry = Entry(self.toplevel, width=4)
-        self.choice_cutoff_entry.grid(row=5, column=3)
+        self.choice_cutoff_entry.grid(row=5, column=2)
 
         self.choice_max_label = Label(self.toplevel, text="Choice Exploration Maximum (sec): ")
         self.choice_max_label.grid(row=6, column=1)
 
         self.choice_max_entry = Entry(self.toplevel, width=4)
-        self.choice_max_entry.grid(row=6, column=3)
+        self.choice_max_entry.grid(row=6, column=2)
 
         self.choice_add_time_label = Label(self.toplevel, text="Additional Choice Measure Time (sec): ")
         self.choice_add_time_label.grid(row=7, column=1)
