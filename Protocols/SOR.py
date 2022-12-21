@@ -25,47 +25,47 @@ class ExperimentConfigure:
         self.id_prompt = Entry(self.toplevel)
         self.id_prompt.grid(row=2, column=3)
 
-        SOR_Sample_Cutoff_Label = Label(self.toplevel, text="Sample Exploration Cutoff (sec): ")
-        SOR_Sample_Cutoff_Label.grid(row=3, column=1)
+        self.sample_cutoff_label = Label(self.toplevel, text="Sample Exploration Cutoff (sec): ")
+        self.sample_cutoff_label.grid(row=3, column=1)
 
-        SOR_Sample_Cutoff_Prompt = Entry(self.toplevel, width=4)
-        SOR_Sample_Cutoff_Prompt.grid(row=3, column=3)
+        self.sample_cutoff_entry = Entry(self.toplevel, width=4)
+        self.sample_cutoff_entry.grid(row=3, column=3)
 
-        SOR_Sample_Max_Label = Label(self.toplevel, text="Sample Exploration Maximum (sec): ")
-        SOR_Sample_Max_Label.grid(row=4, column=1)
+        self.sample_max_label = Label(self.toplevel, text="Sample Exploration Maximum (sec): ")
+        self.sample_max_label.grid(row=4, column=1)
 
-        SOR_Sample_Max_Prompt = Entry(self.toplevel, width=4)
-        SOR_Sample_Max_Prompt.grid(row=4, column=3)
+        self.sample_max_entry = Entry(self.toplevel, width=4)
+        self.sample_max_entry.grid(row=4, column=3)
 
-        SOR_Choice_Cutoff_Label = Label(self.toplevel, text="Choice Exploration Cutoff (sec): ")
-        SOR_Choice_Cutoff_Label.grid(row=5, column=1)
+        self.choice_cutoff_label = Label(self.toplevel, text="Choice Exploration Cutoff (sec): ")
+        self.choice_cutoff_label.grid(row=5, column=1)
 
-        SOR_Choice_Cutoff_Prompt = Entry(self.toplevel, width=4)
-        SOR_Choice_Cutoff_Prompt.grid(row=5, column=3)
+        self.choice_cutoff_entry = Entry(self.toplevel, width=4)
+        self.choice_cutoff_entry.grid(row=5, column=3)
 
-        SOR_Choice_Max_Label = Label(self.toplevel, text="Choice Exploration Maximum (sec): ")
-        SOR_Choice_Max_Label.grid(row=6, column=1)
+        self.choice_max_label = Label(self.toplevel, text="Choice Exploration Maximum (sec): ")
+        self.choice_max_label.grid(row=6, column=1)
 
-        SOR_Choice_Max_Prompt = Entry(self.toplevel, width=4)
-        SOR_Choice_Max_Prompt.grid(row=6, column=3)
+        self.choice_max_entry = Entry(self.toplevel, width=4)
+        self.choice_max_entry.grid(row=6, column=3)
 
-        SOR_Additional_Measure_Label = Label(self.toplevel, text="Additional Measure Time (sec): ")
-        SOR_Additional_Measure_Label.grid(row=7, column=1)
+        self.choice_add_time_label = Label(self.toplevel, text="Additional Choice Measure Time (sec): ")
+        self.choice_add_time_label.grid(row=7, column=1)
 
-        SOR_Additional_Measure_Prompt = Entry(self.toplevel, width=4)
-        SOR_Additional_Measure_Prompt.grid(row=7, column=2)
+        self.choice_add_time_entry = Entry(self.toplevel, width=4)
+        self.choice_add_time_entry.grid(row=7, column=2)
 
-        SOR_Condition_Button = Button(self.toplevel, text="Conditions")
-        SOR_Condition_Button.grid(row=8, column=2)
+        self.condition_button = Button(self.toplevel, text="Conditions")
+        self.condition_button.grid(row=8, column=2)
 
-        SOR_ObjectPairs_Button = Button(self.toplevel, text="Object List")
-        SOR_ObjectPairs_Button.grid(row=9, column=2)
+        self.object_list_button = Button(self.toplevel, text="Object List")
+        self.object_list_button.grid(row=9, column=2)
 
-        SOR_KeyBinding_Button = Button(self.toplevel, text="Key Bindings")
-        SOR_KeyBinding_Button.grid(row=10, column=2)
+        self.keybinding_button = Button(self.toplevel, text="Key Bindings")
+        self.keybinding_button.grid(row=10, column=2)
 
-        SOR_Finish_Button = Button(self.toplevel, text="Finished")
-        SOR_Finish_Button.grid(row=11, column=2)
+        self.save_close_button = Button(self.toplevel, text="Save and Close")
+        self.save_close_button.grid(row=11, column=2)
 
         Key_Setting = 1
 
