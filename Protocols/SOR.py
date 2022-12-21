@@ -6,8 +6,8 @@ import msvcrt
 from msvcrt import getch
 from tkinter import *  ## Access Tkinter modules without calling to Tkinter
 import csv
-import threading
-import imp
+#import threading
+#import imp
 import pygame
 
 #############################################################################################################
@@ -158,7 +158,7 @@ def Create_Experiment():
         def keybind_func_left():
             def key_press(event):
                 global Left_Keybind
-                key = pygame.key.
+                #key = pygame.key.
                 key = event.char
                 Left_Keybind = str(key)
                 key_bind_left_string.set(Left_Keybind)

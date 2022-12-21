@@ -2,12 +2,12 @@
 import os
 import time
 import tkinter  ## Import Tkinter Modules
-import msvcrt
+#import msvcrt
 from msvcrt import getch
 from tkinter import *  ## Access Tkinter modules without calling to Tkinter
 import csv
-import threading
-import imp
+#import threading
+#import imp
 
 #############################################################################################################
 ## Find Current Directory ##

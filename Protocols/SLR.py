@@ -8,7 +8,7 @@ from tkinter import *  ## Access Tkinter modules without calling to Tkinter
 import tkinter.filedialog
 from tkinter import filedialog
 import csv
-import threading
+#import threading
 import imp
 import pandas as pd
 import numpy as np

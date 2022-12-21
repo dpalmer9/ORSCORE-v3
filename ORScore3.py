@@ -5,7 +5,7 @@ from tkinter import *
 import tkinter.filedialog
 from tkinter import filedialog
 from threading import Thread
-import imp
+#import imp
 import sys
 import pandas as pd
 import numpy as np
@@ -32,6 +32,7 @@ sys.path.insert(0, protocol_dir)
 
 # Get List of Active Experiments
 active_exp = list()
+print(exp_dir)
 for file in os.listdir(exp_dir):
     if file.endswith(".ORe"):
         active_exp.append(file)
@@ -41,10 +42,10 @@ active_exp = [exp_names.replace(".ORe", "") for exp_names in active_exp]
 # Get List of Available Protocols
 active_prot = list()
 for prot in os.listdir(protocol_dir):
-    if prot.endswith(".ORp"):
+    if prot.endswith(".py"):
         active_prot.append(prot)
 
-Active_Prot = [prot_file.replace(".ORp", "") for prot_file in active_prot]
+Active_Prot = [prot_file.replace(".py", "") for prot_file in active_prot]
 
 
 # Establish Main Window
@@ -61,7 +62,7 @@ def experiment_command_run():
     # Acquire filename
     exp_select_list_pos = curr_exp_list.curselection()
     exp_selected_name = curr_exp_list.get(exp_select_list_pos[0])
-    exp_selected_filename = exp_selected_name + ".ORe"
+    exp_selected_filename = exp_selected_name + ".py"
     exp_filepath = exp_dir + folder_symbol + exp_selected_filename
     exp_loaded_file = open(exp_filepath, "r")
     exp_loaded_script_list = exp_loaded_file.readlines()
@@ -92,7 +93,7 @@ def experiment_command_delete():
     exp_select_list_pos = curr_exp_list.curselection()
     exp_selected_name = curr_exp_list.get(exp_select_list_pos[0])
     global exp_dir
-    file_path = exp_dir + folder_symbol + exp_selected_name + ".ORe"
+    file_path = exp_dir + folder_symbol + exp_selected_name + ".py"
     os.remove(file_path)
     curr_exp_list.delete(0, END)
     active_exp = list()
@@ -116,7 +117,7 @@ def experiment_command_create():
     def create_command():
         prot_name_pos = protocol_list.curselection()
         prot_name = protocol_list.get(prot_name_pos[0])
-        protocol_file = prot_name + ".ORp"
+        protocol_file = prot_name + ".py"
         global protocol_dir
         file_location = protocol_dir
         file_path = file_location + folder_symbol + protocol_file
@@ -185,3 +186,58 @@ create_exp.grid(row=7,column=2)
 
 # Run Window Command
 top.mainloop()  # Run Main Window on Loop (Start)
+
+
+class MainWindow:
+    def __init__(self):
+
+        # Initialize Variables
+        self.current_dir = ''
+        self.exp_folder = ''
+        self.data_folder = ''
+        self.protocol_folder = ''
+        self.find_folders()
+
+        # Initialize Lists
+        self.experiment_list = list()
+        self.find_experiments()
+
+        # Generate GUI
+        self.top = Tk()
+
+        # Generate Titles
+
+        self.title_label = Label(self.top, text="ORScore 3")
+        self.title_label.grid(row=1, column=2)
+
+        self.author_label = Label(self.top, text="Created by: Daniel Palmer, PhD")
+        self.author_label.grid(row=2, column=2)
+
+        self.version_label = Label(self.top, text='Version: 3.0.0')
+        self.version_label.grid(row=3, column=2)
+        #
+        return
+
+    def find_folders(self):
+        self.current_dir = os.getcwd()
+
+        folder_symbol = '/'
+        if sys.platform == 'linux' or sys.platform == 'darwin':
+            folder_symbol = '/'
+        elif sys.platform == 'win32':
+            folder_symbol = '\\'
+        self.exp_folder = self.current_dir + folder_symbol + 'Experiments'
+        if not os.path.isdir(self.exp_folder):
+            os.mkdir(self.exp_folder)
+        self.data_folder = self.current_dir + folder_symbol + 'Data'
+        if not os.path.isdir(self.data_folder):
+            os.mkdir(self.data_folder)
+        self.protocol_folder = self.current_dir + folder_symbol + 'Protocols'
+        if not os.path.isdir(self.protocol_folder):
+            os.mkdir(self.protocol_folder)
+        return
+    def find_experiments(self):
+        exp_dir_list = os.listdir(self.exp_folder)
+        for experiment in self.exp_folder:
+            if experiment.endswith('.cfg'):
+                self.experiment_list.append(file)
