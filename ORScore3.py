@@ -1,15 +1,16 @@
-# Module Import
+# Module Import - Base
 import os
+import sys
 import time
 from tkinter import *
 import tkinter.filedialog
 from tkinter import filedialog
-from threading import Thread
-#import imp
-import sys
+
+# Module Import - Secondary
 import pandas as pd
 import numpy as np
-import pygame
+import keyboard
+# import imp
 
 # Find Current Directory
 current_dir = os.getcwd()
@@ -121,10 +122,13 @@ def experiment_command_create():
         global protocol_dir
         file_location = protocol_dir
         file_path = file_location + folder_symbol + protocol_file
-        import_command = "%s = imp.load_source('%s', r'%s')" % (prot_name, prot_name, file_path)
-        run_setup_command = prot_name + ".Create_Experiment()"
-        exec(import_command)
-        exec(run_setup_command)
+        if prot_name == 'SOR':
+            from Protocols.SOR import ExperimentConfigure
+            ExperimentConfigure()
+        # import_command = "%s = imp.load_source('%s', r'%s')" % (prot_name, prot_name, file_path)
+        # run_setup_command = prot_name + ".Create_Experiment()"
+        # exec(import_command)
+        # exec(run_setup_command)
 
     # Create Cancel Function
 

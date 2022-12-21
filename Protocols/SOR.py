@@ -1,70 +1,135 @@
 ## Module Import ##
 import os
 import time
-import tkinter  ## Import Tkinter Modules
-import msvcrt
-from msvcrt import getch
-from tkinter import *  ## Access Tkinter modules without calling to Tkinter
+from tkinter import *  # Access Tkinter modules without calling to Tkinter
 import csv
-#import threading
-#import imp
-import pygame
+import configparser
 
-#############################################################################################################
-## Find Current Directory ##
+import keyboard
+
+
+# Class - Experiment Configuration
+
+class ExperimentConfigure:
+    def __init__(self):
+        self.toplevel = Toplevel()
+        icon_path = current_dir + "\\" + "Mouse_Icon.ico"
+        self.toplevel.iconbitmap(icon_path)
+
+        self.window_title = Label(self.toplevel, text="SOR Experiment Creator")
+        self.window_title.grid(row=1, column=2)
+
+        self.id_label = Label(self.toplevel, text="Experiment ID: ")
+        self.id_label.grid(row=2, column=1)
+
+        self.id_prompt = Entry(self.toplevel)
+        self.id_prompt.grid(row=2, column=3)
+
+        SOR_Sample_Cutoff_Label = Label(self.toplevel, text="Sample Exploration Cutoff (sec): ")
+        SOR_Sample_Cutoff_Label.grid(row=3, column=1)
+
+        SOR_Sample_Cutoff_Prompt = Entry(self.toplevel, width=4)
+        SOR_Sample_Cutoff_Prompt.grid(row=3, column=3)
+
+        SOR_Sample_Max_Label = Label(self.toplevel, text="Sample Exploration Maximum (sec): ")
+        SOR_Sample_Max_Label.grid(row=4, column=1)
+
+        SOR_Sample_Max_Prompt = Entry(self.toplevel, width=4)
+        SOR_Sample_Max_Prompt.grid(row=4, column=3)
+
+        SOR_Choice_Cutoff_Label = Label(self.toplevel, text="Choice Exploration Cutoff (sec): ")
+        SOR_Choice_Cutoff_Label.grid(row=5, column=1)
+
+        SOR_Choice_Cutoff_Prompt = Entry(self.toplevel, width=4)
+        SOR_Choice_Cutoff_Prompt.grid(row=5, column=3)
+
+        SOR_Choice_Max_Label = Label(self.toplevel, text="Choice Exploration Maximum (sec): ")
+        SOR_Choice_Max_Label.grid(row=6, column=1)
+
+        SOR_Choice_Max_Prompt = Entry(self.toplevel, width=4)
+        SOR_Choice_Max_Prompt.grid(row=6, column=3)
+
+        SOR_Additional_Measure_Label = Label(self.toplevel, text="Additional Measure Time (sec): ")
+        SOR_Additional_Measure_Label.grid(row=7, column=1)
+
+        SOR_Additional_Measure_Prompt = Entry(self.toplevel, width=4)
+        SOR_Additional_Measure_Prompt.grid(row=7, column=2)
+
+        SOR_Condition_Button = Button(self.toplevel, text="Conditions")
+        SOR_Condition_Button.grid(row=8, column=2)
+
+        SOR_ObjectPairs_Button = Button(self.toplevel, text="Object List")
+        SOR_ObjectPairs_Button.grid(row=9, column=2)
+
+        SOR_KeyBinding_Button = Button(self.toplevel, text="Key Bindings")
+        SOR_KeyBinding_Button.grid(row=10, column=2)
+
+        SOR_Finish_Button = Button(self.toplevel, text="Finished")
+        SOR_Finish_Button.grid(row=11, column=2)
+
+        Key_Setting = 1
+
+        ## Run Window Command ##
+        self.toplevel.mainloop()
+
+
+# Find Current Directory
 current_dir = os.getcwd()
 
 exp_folder = "\\Experiments"
 data_folder = "\\Data"
 protocol_folder = "\\Protocols"
 
-current_dir.replace("\\Protocols","")
+current_dir.replace("\\Protocols", "")
 experiment_dir = current_dir + exp_folder
 data_dir = current_dir + data_folder
 
-icon = current_dir + "\\" + "Mouse_Icon.ico"
-## SOR Variable List - Create ##
-Conditions_List = list()
-ObjectPairs_List = list()
-Left_Keybind = "a"
-Right_Keybind = "l"
-Key_Setting = "1"
 
-## SOR - Create Experiment Function ##
-def Create_Experiment():
-    ## SOR Create Conditions ##
-    def SOR_Create_Condition():
+
+# SOR Variable List - Create
+conditions_list = list()
+object_pairs_list = list()
+left_keybind = "a"
+right_keybind = "l"
+key_setting = "1"
+
+# SOR - Create Experiment Function
+
+
+def create_experiment():
+    # SOR Create Conditions
+    def sor_create_condition():
         condition_window = Toplevel()
-        global icon
-        condition_window.iconbitmap(icon)
+        icon_path = current_dir + "\\" + "Mouse_Icon.ico"
+        condition_window.iconbitmap(icon_path)
 
-        ## SOR Add Condition ##
+        # SOR Add Condition
 
         def condition_add():
             condition = condition_input.get()
-            Conditions_List.append(condition)
+            conditions_list.append(condition)
             condition_list.insert(END, condition)
-            condition_input.delete(0,END)
+            condition_input.delete(0, END)
 
-        ## SOR Remove Condition ##
+        # SOR Remove Condition
         def condition_remove():
             condition = condition_list.curselection()
             condition_name = condition_list.get(condition[0])
-            condition_pos = Conditions_List.index(condition_name)
-            Conditions_List.remove(Conditions_List[condition_pos])
+            condition_pos = conditions_list.index(condition_name)
+            conditions_list.remove(conditions_list[condition_pos])
             condition_list.delete(condition[0])
 
-        ## SOR Done ##
+        # SOR Done
         def condition_done():
             condition_window.destroy()
 
-            ## Window Setup##
+            # Window Setup
 
         condition_title = Label(condition_window, text="Condition List")
         condition_title.grid(row=1, column=2)
 
         condition_list = Listbox(condition_window, selectmode=BROWSE)
-        for condition in Conditions_List:
+        for condition in conditions_list:
             condition_list.insert(END, condition)
         condition_list.grid(row=2, column=2)
 
@@ -84,38 +149,38 @@ def Create_Experiment():
         condition_window.mainloop()
         return
 
-    ## SOR Object Pairs ##
-    def SOR_ObjectPairs():
+    # SOR Object Pairs
+    def sor_objectpairs():
         objectpair_window = Toplevel()
-        global icon
-        objectpair_window.iconbitmap(icon)
+        icon_path = current_dir + "\\" + "Mouse_Icon.ico"
+        objectpair_window.iconbitmap(icon_path)
 
-        ## Add Object Pair ##
+        # Add Object Pair
         def objectpair_add():
             object1 = objectpair_object1.get()
             objectpair_list.insert(END, object1)
-            ObjectPairs_List.append(object1)
+            object_pairs_list.append(object1)
             objectpair_object1.delete(0,END)
 
-        ## Remove Object Pair ##
+        # Remove Object Pair
         def objectpair_remove():
             removeset = objectpair_list.curselection()
             objectpair_identity_name = objectpair_list.get(removeset[0])
-            objectpair_location = ObjectPairs_List.index(objectpair_identity_name)
-            ObjectPairs_List.remove(ObjectPairs_List[objectpair_location])
+            objectpair_location = object_pairs_list.index(objectpair_identity_name)
+            object_pairs_list.remove(object_pairs_list[objectpair_location])
             objectpair_list.delete(removeset[0])
 
-        ## Done ##
+        # Done
         def objectpair_done():
             objectpair_window.destroy()
 
-        ## Window Configuration ##
+        # Window Configuration
 
         objectpair_title = Label(objectpair_window, text="Object List")
         objectpair_title.grid(row=1, column=2)
 
         objectpair_list = Listbox(objectpair_window, selectmode=BROWSE)
-        for pair in ObjectPairs_List:
+        for pair in object_pairs_list:
             objectpair_list.insert(END, pair)
         objectpair_list.grid(row=2, column=2)
 
@@ -137,11 +202,11 @@ def Create_Experiment():
         objectpair_window.focus_force()
         objectpair_window.mainloop()
 
-    ## Keybinding Menu ##
-    def SOR_Keybind():
+    # Keybinding Menu
+    def sor_keybind():
         top_keybind = Toplevel()
-        global icon
-        top_keybind.iconbitmap(icon)
+        icon_path = current_dir + "\\" + "Mouse_Icon.ico"
+        top_keybind.iconbitmap(icon_path)
 
         key_bind_right_string = StringVar()
         key_bind_right_string.set("l")
@@ -156,21 +221,22 @@ def Create_Experiment():
             top_keybind.destroy()
 
         def keybind_func_left():
-            def key_press(event):
-                global Left_Keybind
+            left_key = keyboard.read_key()
+            # def key_press(event):
+                # global Left_Keybind
                 #key = pygame.key.
-                key = event.char
-                Left_Keybind = str(key)
-                key_bind_left_string.set(Left_Keybind)
-                top_keybind_left.destroy()
-                return
+                # key = event.char
+                # Left_Keybind = str(key)
+                # key_bind_left_string.set(Left_Keybind)
+                # top_keybind_left.destroy()
+                # return
 
-            top_keybind_left = Toplevel()
-            top_keybind_label = Label(top_keybind_left, text="Bind Left Key")
-            top_keybind_label.grid(row=1, column=1)
-            top_keybind_left.bind('<Key>', key_press)
-            top_keybind_left.focus_force()
-            top_keybind_left.mainloop()
+            # top_keybind_left = Toplevel()
+            # top_keybind_label = Label(top_keybind_left, text="Bind Left Key")
+            # top_keybind_label.grid(row=1, column=1)
+            # top_keybind_left.bind('<Key>', key_press)
+            # top_keybind_left.focus_force()
+            # top_keybind_left.mainloop()
 
         def keybind_func_right():
             def key_press(event):
