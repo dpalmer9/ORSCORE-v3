@@ -1,8 +1,7 @@
-## Module Import ##
+# Module Import
 import os
 import time
 from tkinter import *  # Access Tkinter modules without calling to Tkinter
-import csv
 import configparser
 import sys
 
@@ -10,6 +9,7 @@ import keyboard
 import pandas as pd
 
 # Class - Experiment Configuration
+
 
 class ExperimentConfigure:
     def __init__(self):
@@ -33,7 +33,7 @@ class ExperimentConfigure:
         self.sample_max_string_var = StringVar()
         self.choice_cutoff_string_var = StringVar()
         self.choice_max_string_var = StringVar()
-        self.additonal_measure_string_var = StringVar()
+        self.additional_measure_string_var = StringVar()
 
         # Construct Primary GUI
         self.construct_gui()
@@ -41,7 +41,7 @@ class ExperimentConfigure:
     def construct_gui(self):
         # GUI
         toplevel = Toplevel()
-        icon_path = current_dir + "\\" + "Mouse_Icon.ico"
+        icon_path = self.curr_dir + "\\" + "Mouse_Icon.ico"
         toplevel.iconbitmap(icon_path)
 
         window_title = Label(toplevel, text="SOR Experiment Creator")
@@ -80,7 +80,7 @@ class ExperimentConfigure:
         choice_add_time_label = Label(toplevel, text="Additional Choice Measure Time (sec): ")
         choice_add_time_label.grid(row=7, column=1)
 
-        choice_add_time_entry = Entry(toplevel, width=4, textvariable=self.additonal_measure_string_var)
+        choice_add_time_entry = Entry(toplevel, width=4, textvariable=self.additional_measure_string_var)
         choice_add_time_entry.grid(row=7, column=2)
 
         condition_button = Button(toplevel, text="Conditions", command=self.condition_gui)
@@ -101,7 +101,7 @@ class ExperimentConfigure:
 
     def condition_gui(self):
         condition_window = Toplevel()
-        icon_path = current_dir + "\\" + "Mouse_Icon.ico"
+        icon_path = self.curr_dir + "\\" + "Mouse_Icon.ico"
         condition_window.iconbitmap(icon_path)
 
         condition_title = Label(condition_window, text="Condition List")
@@ -147,7 +147,7 @@ class ExperimentConfigure:
 
     def object_pair_gui(self):
         object_pair_window = Toplevel()
-        icon_path = current_dir + "\\" + "Mouse_Icon.ico"
+        icon_path = self.curr_dir + "\\" + "Mouse_Icon.ico"
         object_pair_window.iconbitmap(icon_path)
 
         # Add Object Pair
@@ -200,7 +200,7 @@ class ExperimentConfigure:
 
     def keybinding_gui(self):
         top_keybind = Toplevel()
-        icon_path = current_dir + "\\" + "Mouse_Icon.ico"
+        icon_path = self.curr_dir + "\\" + "Mouse_Icon.ico"
         top_keybind.iconbitmap(icon_path)
 
         key_bind_right_string = StringVar()
@@ -273,7 +273,7 @@ class ExperimentConfigure:
         self.experiment_config['Time Parameters']['sample_max'] = self.sample_max_string_var.get()
         self.experiment_config['Time Parameters']['choice_cutoff'] = self.choice_cutoff_string_var.get()
         self.experiment_config['Time Parameters']['choice_max'] = self.choice_max_string_var.get()
-        self.experiment_config['Time Parameters']['additional_time'] = self.additonal_measure_string_var.get()
+        self.experiment_config['Time Parameters']['additional_time'] = self.additional_measure_string_var.get()
 
         config_filepath = self.experiment_folder + self.experiment_id_string_var.get() + '.ini'
 
@@ -283,6 +283,9 @@ class ExperimentConfigure:
         # Data files
         data_folderpath = self.curr_dir + self.folder_symbol + 'Data' + self.folder_symbol + \
                           self.experiment_id_string_var.get() + self.folder_symbol
+
+        if not os.path.isdir(data_folderpath):
+            os.mkdir(data_folderpath)
         sample_bout_filepath = data_folderpath + self.experiment_id_string_var.get() + '_Sample_Bout.csv'
         sample_summary_filepath = data_folderpath + self.experiment_id_string_var.get() + '_Sample_Summary.csv'
         choice_bout_filepath = data_folderpath + self.experiment_id_string_var.get() + '_Choice_Bout.csv'
@@ -304,184 +307,7 @@ class ExperimentConfigure:
 
         tk_level.destroy()
 
-
-
-
-# Find Current Directory
-current_dir = os.getcwd()
-
-exp_folder = "\\Experiments"
-data_folder = "\\Data"
-protocol_folder = "\\Protocols"
-
-current_dir.replace("\\Protocols", "")
-experiment_dir = current_dir + exp_folder
-data_dir = current_dir + data_folder
-
-# SOR Variable List - Create
-conditions_list = list()
-object_pairs_list = list()
-left_keybind = "a"
-right_keybind = "l"
-key_setting = "1"
-
 # SOR - Create Experiment Function
-
-
-def create_experiment():
-
-    # Keybinding Menu
-    ## Finish: Save Function ##
-    def SOR_Finish():
-        nonlocal Key_Setting
-        exp_filename = SOR_ID_Prompt.get() + ".ORe"
-        data_raw_filename = SOR_ID_Prompt.get() + "_Raw.csv"
-        data_raw_filepath = data_dir + "\\" + data_raw_filename
-
-        if len(SOR_Additional_Measure_Prompt.get()) == 0:
-            SOR_Additional_Time = 0
-        else:
-            SOR_Additional_Time = int(SOR_Additional_Measure_Prompt.get())
-
-
-        exp_filepath = experiment_dir + "\\" + exp_filename
-        data_file_dir = data_dir + "\\" + SOR_ID_Prompt.get()
-        os.makedirs(data_file_dir)
-
-        data_samp_bout_filename = SOR_ID_Prompt.get() + "_Samp_Bout.csv"
-        data_samp_bout_filepath = data_file_dir + "\\" + data_samp_bout_filename
-        data_samp_bout_file = open(data_samp_bout_filepath, "w")
-        data_samp_bout_file.write("'Bout#','Bout_Start_Time','Bout_Side','Bout_Duration'")
-        data_samp_bout_file.close()
-        
-        data_Choice_bout_filename = SOR_ID_Prompt.get() + "_Choice_Bout.csv"
-        data_Choice_bout_filepath = data_file_dir + "\\" + data_Choice_bout_filename
-        data_Choice_bout_file = open(data_Choice_bout_filepath, "w")
-        data_Choice_bout_file.write("'Bout#','Bout_Start_Time','Bout_Side','Bout_Duration'")
-        data_Choice_bout_file.close()
-
-        data_samp_Summary_filename = SOR_ID_Prompt.get() + "_Samp_Summary.csv"
-        data_samp_Summary_filepath = data_file_dir + "\\" + data_samp_Summary_filename
-        data_samp_Summary_file = open(data_samp_Summary_filepath, "w")
-        data_samp_Summary_file.write("'Date','Time','Animal_ID','Condition','Left_Object','Right_Object','Left_Explore_Total','Right_Explore_Total','Total_Exploration','Discrimination_Ratio'")
-        data_samp_Summary_file.close()
-
-        data_Choice_Summary_filename = SOR_ID_Prompt.get() + "_Choice_Summary.csv"
-        data_Choice_Summary_filepath = data_file_dir + "\\" + data_Choice_Summary_filename
-        data_Choice_Summary_file = open(data_Choice_Summary_filepath, "w")
-        data_Choice_Summary_file.write("'Date','Time','Animal_ID','Condition','Left_Object','Right_Object','Novel_Side','Delay','Novel_Explore_Total','Familiar_Explore_Total','Total_Exploration','Discrimination_Ratio', '%d_Novel_Explore', '%d_Familiar_Explore','%d_Discrimination_Ratio'" % (SOR_Additional_Time,SOR_Additional_Time,SOR_Additional_Time))
-        data_Choice_Summary_file.close()
-
-
-
-        exp_file = open(exp_filepath, "w")
-        exp_file.write("#Protocol Details#")
-        exp_file.write("\n")
-        exp_file.write("Protocol = SORv15")
-        exp_file.write("\n")
-        exp_file.write("Experiment_ID = '%s'" % (SOR_ID_Prompt.get()))
-        exp_file.write("\n")
-        exp_file.write("\n")
-        exp_file.write("#Protocol Timepoints#")
-        exp_file.write("\n")
-        exp_file.write("Sample_Cut = %d" % (int(SOR_Sample_Cutoff_Prompt.get())))
-        exp_file.write("\n")
-        exp_file.write("Sample_Max = %d" % (int(SOR_Sample_Max_Prompt.get())))
-        exp_file.write("\n")
-        exp_file.write("Choice_Cut = %d" % (int(SOR_Choice_Cutoff_Prompt.get())))
-        exp_file.write("\n")
-        exp_file.write("Choice_Max = %d" % (int(SOR_Choice_Max_Prompt.get())))
-        exp_file.write("\n")
-        if len(SOR_Additional_Measure_Prompt.get()) != 0:
-            exp_file.write("Additional_Measure = %d" % (int(SOR_Additional_Measure_Prompt.get())))
-        if len(SOR_Additional_Measure_Prompt.get()) == 0:
-            exp_file.write("Additional_Measure = 0")
-        exp_file.write("\n")
-        exp_file.write("\n")
-        exp_file.write("#Conditions#")
-        exp_file.write("\n")
-        exp_file.write("Conditions = %s" % Conditions_List)
-        exp_file.write("\n")
-        exp_file.write("\n")
-        exp_file.write("#Objects#")
-        exp_file.write("\n")
-        exp_file.write("Object_List = %s" % ObjectPairs_List)
-        exp_file.write("\n")
-        exp_file.write("\n")
-        exp_file.write("#Keyboard#")
-        exp_file.write("\n")
-        exp_file.write("Keypress_Setup = %d" % (int(Key_Setting)))
-        exp_file.write("\n")
-        exp_file.write("Left_Keybind = '%s'" % Left_Keybind)
-        exp_file.write("\n")
-        exp_file.write("Right_Keybind = '%s'" % Right_Keybind)
-        exp_file.write("\n")
-
-        exp_file.close()
-        top_SOR.destroy()
-
-    ## Window Parameters - Create ##
-    top_SOR = Toplevel()  # Establish Top/Primary Window
-    global icon
-    top_SOR.iconbitmap(icon)
-
-    SOR_Title = Label(top_SOR, text="SOR Experiment Creator")
-    SOR_Title.grid(row=1, column=2)
-
-    SOR_ID_Label = Label(top_SOR, text="Experiment ID: ")
-    SOR_ID_Label.grid(row=2, column=1)
-
-    SOR_ID_Prompt = Entry(top_SOR)
-    SOR_ID_Prompt.grid(row=2, column=3)
-
-    SOR_Sample_Cutoff_Label = Label(top_SOR, text="Sample Exploration Cutoff (sec): ")
-    SOR_Sample_Cutoff_Label.grid(row=3, column=1)
-
-    SOR_Sample_Cutoff_Prompt = Entry(top_SOR, width=4)
-    SOR_Sample_Cutoff_Prompt.grid(row=3, column=3)
-
-    SOR_Sample_Max_Label = Label(top_SOR, text="Sample Exploration Maximum (sec): ")
-    SOR_Sample_Max_Label.grid(row=4, column=1)
-
-    SOR_Sample_Max_Prompt = Entry(top_SOR, width=4)
-    SOR_Sample_Max_Prompt.grid(row=4, column=3)
-
-    SOR_Choice_Cutoff_Label = Label(top_SOR, text="Choice Exploration Cutoff (sec): ")
-    SOR_Choice_Cutoff_Label.grid(row=5, column=1)
-
-    SOR_Choice_Cutoff_Prompt = Entry(top_SOR, width=4)
-    SOR_Choice_Cutoff_Prompt.grid(row=5, column=3)
-
-    SOR_Choice_Max_Label = Label(top_SOR, text="Choice Exploration Maximum (sec): ")
-    SOR_Choice_Max_Label.grid(row=6, column=1)
-
-    SOR_Choice_Max_Prompt = Entry(top_SOR, width=4)
-    SOR_Choice_Max_Prompt.grid(row=6, column=3)
-
-    SOR_Additional_Measure_Label = Label(top_SOR, text="Additional Measure Time (sec): ")
-    SOR_Additional_Measure_Label.grid(row=7, column=1)
-
-    SOR_Additional_Measure_Prompt = Entry(top_SOR, width=4)
-    SOR_Additional_Measure_Prompt.grid(row=7,column=2)
-
-    SOR_Condition_Button = Button(top_SOR, text="Conditions", command=SOR_Create_Condition)
-    SOR_Condition_Button.grid(row=8, column=2)
-
-    SOR_ObjectPairs_Button = Button(top_SOR, text="Object List", command=SOR_ObjectPairs)
-    SOR_ObjectPairs_Button.grid(row=9, column=2)
-
-    SOR_KeyBinding_Button = Button(top_SOR, text="Key Bindings", command=SOR_Keybind)
-    SOR_KeyBinding_Button.grid(row=10, column=2)
-
-    SOR_Finish_Button = Button(top_SOR, text="Finished", command=SOR_Finish)
-    SOR_Finish_Button.grid(row=111, column=2)
-
-    Key_Setting = 1
-
-    ## Run Window Command ##
-    top_SOR.mainloop()  # Run Main Window on Loop (Start)
-
-    return
 
 #####################################################################################################
 
