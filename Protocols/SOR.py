@@ -311,188 +311,121 @@ class ExperimentConfigure:
 
 #####################################################################################################
 
+class TrialConfigure:
+    def __init__(self):
+        self.curr_dir = os.getcwd()
+        if sys.platform == 'linux' or sys.platform == 'darwin':
+            self.folder_symbol = '/'
+        elif sys.platform == 'win32':
+            self.folder_symbol = '\\'
+        self.experiment_folder = self.curr_dir + self.folder_symbol + 'Experiments' + self.folder_symbol
+        self.experiment_config = configparser.ConfigParser()
+
+    def import_experiment(self,experiment_file):
+        experiment_path = self.experiment_folder + experiment_file + '.ini'
+        self.experiment_config.read(experiment_path)
+
+    def construct_gui(self):
+        top_run = Tk()
+        global icon
+        top_run.iconbitmap(icon)
+
+        run_title = Label(top_run, text="Trial Setup")
+        run_title.grid(row=1, column=2)
+
+        run_id_label = Label(top_run, text="Rat ID: ")
+        run_id_label.grid(row=2, column=1)
+
+        run_id_entry = Entry(top_run)
+        run_id_entry.grid(row=2, column=3)
+
+        run_drug_label = Label(top_run, text="Condition: ")
+        run_drug_label.grid(row=3, column=2)
+
+        run_condition_listbox = Listbox(top_run, selectmode=SINGLE, height=4, exportselection=FALSE)
+        run_condition_listbox.grid(row=4, column=2)
+        conditions_list = self.experiment_config['Condition Parameters']['conditions']
+        conditions_list = conditions_list.split(',')
+        for condition in conditions_list:
+            self.run_condition_listbox.insert(END, condition)
+
+        run_object_label = Label(top_run, text="Objects")
+        run_object_label.grid(row=5, column=2)
+
+        run_object_sample_label = Label(top_run, text="Sample Object")
+        run_object_sample_label.grid(row=6, column=1)
+
+        run_object_sample_listbox = Listbox(top_run, selectmode=SINGLE, height=4, exportselection=FALSE)
+        run_object_sample_listbox.grid(row=7, column=1)
+        objects_list = self.experiment_config['Object List']['objects']
+        objects_list = objects_list.split(',')
+        for object_name in objects_list:
+            run_object_sample_listbox.insert(END, object_name)
+
+        run_object_choice_label = Label(top_run, text="Choice Object")
+        run_object_choice_label.grid(row=6, column=3)
+
+        run_object_choice_list = Listbox(top_run, selectmode=SINGLE, height=4, exportselection=FALSE)
+        run_object_choice_list.grid(row=7, column=3)
+        for object_name in objects_list:
+            run_object_choice_list.insert(END, object_name)
+        run_novel_label = Label(top_run, text="Novel Side")
+        run_novel_label.grid(row=8, column=2)
+
+        run_novel_side = IntVar()
+
+        run_novel_left = Radiobutton(top_run, text="Left", variable=run_novel_side, value=1,
+                                          command=lambda: run_novel_side.set(1))
+        run_novel_left.grid(row=9, column=1)
+
+        run_novel_right = Radiobutton(top_run, text="Right", variable=run_novel_side, value=2,
+                                           command=lambda: run_novel_side.set(2))
+        run_novel_right.grid(row=9, column=3)
+
+        run_phase_choice = IntVar()
+
+        run_phase_sample_only = Radiobutton(top_run, text="Sample", variable=run_phase_choice,
+                                                 value=1, command=lambda: run_phase_choice.set(1))
+        run_phase_sample_only.grid(row=10, column=2)
+
+        run_phase_choice_only = Radiobutton(top_run, text="Choice", variable=run_phase_choice,
+                                                 value=2, command=lambda: run_phase_choice.set(2))
+        run_phase_choice_only.grid(row=11, column=2)
+
+        run_phase_choice_both = Radiobutton(top_run, text="Sample/Choice", variable=run_phase_choice,
+                                                 value=3, command=lambda: run_phase_choice.set(3))
+        run_phase_choice_both.grid(row=12, column=2)
+
+        run_start_trial_button = Button(top_run, text="Start Trial", command=self.run_start_trial)
+        run_start_trial_button.grid(row=13, column=2)
+
+        run_cancel_trial_button = Button(top_run, text="Cancel", command=self.run_cancel_trial)
+        run_cancel_trial_button.grid(row=14, column=2)
+
+        run_trial_parameter_frame = LabelFrame(top_run, text="Trial Parameters")
+        run_trial_parameter_frame.grid(row=15, column=2)
+
+        parameter_frame_task = Label(run_trial_parameter_frame, text="Experiment Type: SORv11")
+        parameter_frame_task.grid(row=16, column=1)
+
+        parameter_frame_sample = Label(run_trial_parameter_frame,
+                                            text="Sample: Max = %i , Cutoff = %i " % (
+                                                self.Sample_Max, self.Sample_Cut))
+        parameter_frame_sample.grid(row=17, column=1)
+
+        parameter_frame_choice = Label(run_trial_parameter_frame,
+                                            text="Choice: Max = %i, Cutoff = %i" % (
+                                                self.Choice_Max, self.Choice_Cut))
+        parameter_frame_choice.grid(row=18, column=1)
+
+        top_run.mainloop()
+
+
 
 ## SOR Trial Setup ##
 def Trial_Setup(Curr_Exp, Curr_Raw_Data):
     trial_import_data = str()
     class Trial_Create():
-        def __init__(self, Curr_Exp):
-            self.experiment_file = open(Curr_Exp, "r")
-            self.experiment_file_contents = self.experiment_file.readlines()
-            self.experiment_file_contents = [experiment_item.strip("\n") for experiment_item in
-                                             self.experiment_file_contents]
-            self.var_creation()
-
-        def var_creation(self):
-            self.Experiment_ID = str()
-            self.Sample_Cut = int()
-            self.Sample_Max = int()
-            self.Choice_Cut = int()
-            self.Choice_Max = int()
-            self.Conditions = list()
-            self.Object_List = list()
-            self.Keypress_Setup = int()
-            self.Left_Keybind = str()
-            self.Right_Keybind = str()
-            self.Delay = ""
-            self.var_define()
-
-        def var_define(self):
-            self.current_exp_title = str(self.experiment_file_contents[2])
-            self.current_exp_title = self.current_exp_title.strip("Experiment_ID = ")
-            self.current_exp_title = self.current_exp_title.strip("'")
-            self.Experiment_ID = self.current_exp_title
-
-            self.current_samp_cut = str(self.experiment_file_contents[5])
-            self.current_samp_cut = self.current_samp_cut.strip("Sample_Cut = ")
-            self.Sample_Cut = self.current_samp_cut
-            self.Sample_Cut = int(self.Sample_Cut)
-
-            self.current_samp_max = str(self.experiment_file_contents[6])
-            self.current_samp_max = self.current_samp_max.strip("Sample_Max = ")
-            self.Sample_Max = self.current_samp_max
-            self.Sample_Max = int(self.Sample_Max)
-
-            self.current_choice_cut = str(self.experiment_file_contents[7])
-            self.current_choice_cut = self.current_choice_cut.strip("Choice_Cut = ")
-            self.Choice_Cut = self.current_choice_cut
-            self.Choice_Cut = int(self.Choice_Cut)
-
-            self.current_choice_max = str(self.experiment_file_contents[8])
-            self.current_choice_max = self.current_choice_max.strip("Choice_Max = ")
-            self.Choice_Max = self.current_choice_max
-            self.Choice_Max = int(self.Choice_Max)
-
-            self.additional_time = str(self.experiment_file_contents[9])
-            self.additional_time = self.additional_time.strip("Additional_Measure = ")
-            self.Additional_Measure = self.additional_time
-            self.Additional_Measure = int(self.Additional_Measure)
-
-            self.current_conditions_list = str(self.experiment_file_contents[12])
-            self.current_conditions_list = self.current_conditions_list.strip("Conditions = [")
-            self.current_conditions_list = self.current_conditions_list.strip("]")
-            self.current_conditions_list = self.current_conditions_list.split(",")
-            for condition in range(len(self.current_conditions_list)):
-                self.current_conditions_list[condition] = self.current_conditions_list[condition].strip(" ")
-                self.current_conditions_list[condition] = self.current_conditions_list[condition].strip("'")
-            self.Conditions = self.current_conditions_list
-
-            self.current_object_list = str(self.experiment_file_contents[15])
-            self.current_object_list = self.current_object_list.strip("Object_List = [")
-            self.current_object_list = self.current_object_list.strip("]")
-            self.current_object_list = self.current_object_list.split(",")
-            for objects in range(len(self.current_object_list)):
-                self.current_object_list[objects] = self.current_object_list[objects].strip(" ")
-                self.current_object_list[objects] = self.current_object_list[objects].strip("'")
-
-            self.Object_List = self.current_object_list
-
-            self.current_key_setting = str(self.experiment_file_contents[18])
-            self.current_key_setting = self.current_key_setting.strip("Keypress_Setup = ")
-            self.Keypress_Setup = self.current_key_setting
-            self.Keypress_Setup = self.Keypress_Setup.strip("'")
-            self.Keypress_Setup = int(self.Keypress_Setup)
-
-            self.current_key_bind_left = str(self.experiment_file_contents[19])
-            self.current_key_bind_left = self.current_key_bind_left.strip("Left_Keybind = ")
-            self.Left_Keybind = self.current_key_bind_left
-            self.Left_Keybind = self.Left_Keybind.strip("'")
-
-            self.current_key_bind_right = str(self.experiment_file_contents[20])
-            self.current_key_bind_right = self.current_key_bind_right.strip("Right_Keybind = ")
-            self.Right_Keybind = self.current_key_bind_right
-            self.Right_Keybind = self.Right_Keybind.strip("'")
-            self.Trial_Setup_GUI()
-
-        def Trial_Setup_GUI(self):
-            self.top_run = Tk()
-            global icon
-            self.top_run.iconbitmap(icon)
-
-            self.run_title = Label(self.top_run, text="Trial Setup")
-            self.run_title.grid(row=1, column=2)
-
-            self.run_ID_label = Label(self.top_run, text="Rat ID: ")
-            self.run_ID_label.grid(row=2, column=1)
-
-            self.run_ID_prompt = Entry(self.top_run)
-            self.run_ID_prompt.grid(row=2, column=3)
-
-            self.run_Drug_label = Label(self.top_run, text="Condition: ")
-            self.run_Drug_label.grid(row=3, column=2)
-
-            self.run_Drug_List = Listbox(self.top_run, selectmode=SINGLE, height=4, exportselection=FALSE)
-            self.run_Drug_List.grid(row=4, column=2)
-            for condition in self.Conditions:
-                self.run_Drug_List.insert(END, condition)
-
-            self.run_object_label = Label(self.top_run, text="Objects")
-            self.run_object_label.grid(row=5, column=2)
-
-            self.run_objectsamp_label = Label(self.top_run, text="Sample Object")
-            self.run_objectsamp_label.grid(row=6, column=1)
-
-            self.run_objectsamp_list = Listbox(self.top_run, selectmode=SINGLE, height=4, exportselection=FALSE)
-            self.run_objectsamp_list.grid(row=7, column=1)
-            for object in self.Object_List:
-                self.run_objectsamp_list.insert(END, object)
-
-            self.run_objectchoice_label = Label(self.top_run, text="Choice Object")
-            self.run_objectchoice_label.grid(row=6, column=3)
-
-            self.run_objectchoice_list = Listbox(self.top_run, selectmode=SINGLE, height=4, exportselection=FALSE)
-            self.run_objectchoice_list.grid(row=7, column=3)
-            for object in self.Object_List:
-                self.run_objectchoice_list.insert(END, object)
-            self.run_novel_label = Label(self.top_run, text="Novel Side")
-            self.run_novel_label.grid(row=8, column=2)
-
-            self.run_novel_side = IntVar()
-
-            self.run_novel_left = Radiobutton(self.top_run, text="Left", variable=self.run_novel_side, value=1, command=self.setnovel1)
-            self.run_novel_left.grid(row=9, column=1)
-
-            self.run_novel_right = Radiobutton(self.top_run, text="Right", variable=self.run_novel_side, value=2, command=self.setnovel2)
-            self.run_novel_right.grid(row=9, column=3)
-
-            self.run_phase_choice = IntVar()
-
-            self.run_phase_sample_only = Radiobutton(self.top_run, text="Sample", variable=self.run_phase_choice,
-                                                     value=1, command=self.setphase1)
-            self.run_phase_sample_only.grid(row=10, column=2)
-
-            self.run_phase_choice_only = Radiobutton(self.top_run, text="Choice", variable=self.run_phase_choice,
-                                                     value=2, command=self.setphase2)
-            self.run_phase_choice_only.grid(row=11, column=2)
-
-            self.run_phase_choice_both = Radiobutton(self.top_run, text="Sample/Choice", variable=self.run_phase_choice,
-                                                     value=3, command=self.setphase3)
-            self.run_phase_choice_both.grid(row=12, column=2)
-
-            self.run_start_trial_button = Button(self.top_run, text="Start Trial", command=self.run_start_trial)
-            self.run_start_trial_button.grid(row=13, column=2)
-
-            self.run_start_trial_button = Button(self.top_run, text="Cancel", command=self.run_cancel_trial)
-            self.run_start_trial_button.grid(row=14, column=2)
-
-            self.run_trial_parameter_frame = LabelFrame(self.top_run, text="Trial Parameters")
-            self.run_trial_parameter_frame.grid(row=15, column=2)
-
-            self.parameter_frame_task = Label(self.run_trial_parameter_frame, text="Experiment Type: SORv11")
-            self.parameter_frame_task.grid(row=16, column=1)
-
-            self.parameter_frame_sample = Label(self.run_trial_parameter_frame,
-                                                text="Sample: Max = %i , Cutoff = %i " % (
-                                                    self.Sample_Max, self.Sample_Cut))
-            self.parameter_frame_sample.grid(row=17, column=1)
-
-            self.parameter_frame_choice = Label(self.run_trial_parameter_frame,
-                                                text="Choice: Max = %i, Cutoff = %i" % (
-                                                    self.Choice_Max, self.Choice_Cut))
-            self.parameter_frame_choice.grid(row=18, column=1)
-
-            self.top_run.mainloop()
-
         def run_start_trial(self):
             nonlocal trial_import_data
 
