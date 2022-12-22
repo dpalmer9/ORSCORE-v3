@@ -138,7 +138,7 @@ def experiment_command_create():
         active_exp = list()
         for experiments in os.listdir(exp_dir):
             if experiments.endswith(".ini"):
-                active_exp.append(file)
+                active_exp.append(experiments)
 
         active_exp = [exp_names.strip(".ini") for exp_names in active_exp]
         for experiments in active_exp:
