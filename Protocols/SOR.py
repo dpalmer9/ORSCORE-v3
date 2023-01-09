@@ -1,6 +1,7 @@
 # Module Import
 import os
 import time
+import tkinter
 from tkinter import *  # Access Tkinter modules without calling to Tkinter
 import configparser
 import sys
@@ -21,6 +22,7 @@ class ExperimentConfigure:
         self.experiment_folder = self.curr_dir + self.folder_symbol + 'Experiments' + self.folder_symbol
         # Initialize ConfigParser object
         self.experiment_config = configparser.ConfigParser()
+        self.experiment_config['Protocol']['protocol'] = 'SOR'
 
         # Initialize parameters
         self.condition_list = list()
@@ -311,6 +313,7 @@ class ExperimentConfigure:
 
 #####################################################################################################
 
+
 class TrialConfigure:
     def __init__(self):
         self.curr_dir = os.getcwd()
@@ -321,14 +324,80 @@ class TrialConfigure:
         self.experiment_folder = self.curr_dir + self.folder_symbol + 'Experiments' + self.folder_symbol
         self.experiment_config = configparser.ConfigParser()
 
+        # TK Vars
+        self.selected_condition = StringVar()
+
     def import_experiment(self,experiment_file):
-        experiment_path = self.experiment_folder + experiment_file + '.ini'
-        self.experiment_config.read(experiment_path)
+        self.experiment_config.read(experiment_file)
+
+    def run_start_trial(self):
+
+
+
+        nonlocal trial_import_data
+
+        self.trial_import_data = list()
+
+        self.trial_import_data.append(self.Experiment_ID)
+
+        self.trial_raw_ID = self.run_ID_prompt.get()
+        self.trial_import_data.append(self.trial_raw_ID)
+
+        self.run_phase_choice_value = self.run_phase_choice.get()
+        if self.run_phase_choice_value == 1:
+            self.trial_raw_phase = "Sample"
+        if self.run_phase_choice_value == 2:
+            self.trial_raw_phase = "Choice"
+        if self.run_phase_choice_value == 3:
+            self.trial_raw_phase = "Both"
+        self.trial_import_data.append(self.trial_raw_phase)
+
+        self.trial_raw_condition = str()
+        self.trial_raw_condition_position = self.run_Drug_List.curselection()
+        self.trial_raw_condition = self.run_Drug_List.get(self.trial_raw_condition_position[0])
+        self.trial_import_data.append(self.trial_raw_condition)
+
+        self.trial_raw_obj1 = str()
+        self.trial_raw_obj1_position = self.run_objectsamp_list.curselection()
+        self.trial_raw_obj1 = self.run_objectsamp_list.get(self.trial_raw_obj1_position[0])
+        self.trial_import_data.append(self.trial_raw_obj1)
+
+        self.trial_raw_obj2 = str()
+        self.trial_raw_obj2_position = self.run_objectchoice_list.curselection()
+        self.trial_raw_obj2 = self.run_objectchoice_list.get(self.trial_raw_obj2_position[0])
+        self.trial_import_data.append(self.trial_raw_obj2)
+
+        self.trial_import_data.append(self.Left_Keybind)
+
+        self.trial_import_data.append(self.Right_Keybind)
+
+        self.trial_import_data.append(self.Keypress_Setup)
+
+        self.trial_import_data.append(self.Sample_Cut)
+
+        self.trial_import_data.append(self.Sample_Max)
+
+        self.trial_import_data.append(self.Choice_Cut)
+
+        self.trial_import_data.append(self.Choice_Max)
+
+        self.trial_import_data.append(self.Additional_Measure)
+
+        self.trial_novel_side = self.run_novel_side.get()
+        if self.trial_novel_side == 1:
+            self.trial_novel = "Left"
+        if self.trial_novel_side == 2:
+            self.trial_novel = "Right"
+
+        self.trial_import_data.append(self.trial_novel)
+        trial_import_data = self.trial_import_data
+        self.top_run.destroy()
+        return self.trial_import_data
 
     def construct_gui(self):
         top_run = Tk()
-        global icon
-        top_run.iconbitmap(icon)
+        icon_path = self.curr_dir + "\\" + "Mouse_Icon.ico"
+        top_run.iconbitmap(icon_path)
 
         run_title = Label(top_run, text="Trial Setup")
         run_title.grid(row=1, column=2)
@@ -346,8 +415,9 @@ class TrialConfigure:
         run_condition_listbox.grid(row=4, column=2)
         conditions_list = self.experiment_config['Condition Parameters']['conditions']
         conditions_list = conditions_list.split(',')
+        print(conditions_list)
         for condition in conditions_list:
-            self.run_condition_listbox.insert(END, condition)
+            run_condition_listbox.insert(END, condition)
 
         run_object_label = Label(top_run, text="Objects")
         run_object_label.grid(row=5, column=2)

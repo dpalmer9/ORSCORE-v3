@@ -1,4 +1,5 @@
 # Module Import - Base
+import configparser
 import os
 import sys
 import time
@@ -63,29 +64,40 @@ def experiment_command_run():
     # Acquire filename
     exp_select_list_pos = curr_exp_list.curselection()
     exp_selected_name = curr_exp_list.get(exp_select_list_pos[0])
-    exp_selected_filename = exp_selected_name + ".py"
+    exp_selected_filename = exp_selected_name + ".ini"
     exp_filepath = exp_dir + folder_symbol + exp_selected_filename
-    exp_loaded_file = open(exp_filepath, "r")
-    exp_loaded_script_list = exp_loaded_file.readlines()
-    exp_protocol_name = str(exp_loaded_script_list[1])
-    exp_protocol_name = [exp_protocol_name.strip("\n")]
-    exp_protocol_name = str(exp_protocol_name[0])
-    exp_protocol_name = [exp_protocol_name.strip("Protocol = ")]
-    exp_protocol_name = str(exp_protocol_name[0])
 
-    data_filepath = data_dir + folder_symbol + exp_selected_name + folder_symbol + exp_selected_name + "_Raw.csv"
-    protocol_filepath = protocol_dir + folder_symbol + exp_selected_name + ".ORp"
-    import_command = "%s = imp.load_source('%s', r'%s%sProtocols%s%s.ORp')" % (exp_protocol_name, exp_protocol_name,
-                                                                               current_dir,folder_symbol, folder_symbol,
-                                                                               exp_protocol_name)
-    trial_thread_code = "run_thread = Thread(target = "
-    trial_setup_code = ".Trial_Setup(Curr_Exp=exp_filepath, Curr_Raw_Data=data_filepath))"
-    run_trial_setup = trial_thread_code + exp_protocol_name + trial_setup_code
-    run_trial_code2 = "run_thread.start()"
-    top.destroy()
-    exec(import_command)
-    exec(run_trial_setup)
-    exec(run_trial_code2)
+    exp_config = configparser.ConfigParser()
+    exp_config.read(exp_filepath)
+    exp_protocol = exp_config['Protocol']['protocol']
+    if exp_protocol == 'SOR':
+        from Protocols.SOR import TrialConfigure
+
+    current_trial = TrialConfigure()
+    current_trial.import_experiment(exp_filepath)
+    current_trial.construct_gui()
+
+    # exp_loaded_file = open(exp_filepath, "r")
+    # exp_loaded_script_list = exp_loaded_file.readlines()
+    # exp_protocol_name = str(exp_loaded_script_list[1])
+    # exp_protocol_name = [exp_protocol_name.strip("\n")]
+    # exp_protocol_name = str(exp_protocol_name[0])
+    # exp_protocol_name = [exp_protocol_name.strip("Protocol = ")]
+    # exp_protocol_name = str(exp_protocol_name[0])
+
+    # data_filepath = data_dir + folder_symbol + exp_selected_name + folder_symbol + exp_selected_name + "_Raw.csv"
+    # protocol_filepath = protocol_dir + folder_symbol + exp_selected_name + ".ORp"
+    # import_command = "%s = imp.load_source('%s', r'%s%sProtocols%s%s.ORp')" % (exp_protocol_name, exp_protocol_name,
+                                                                               # current_dir,folder_symbol, folder_symbol,
+                                                                               # exp_protocol_name)
+    # trial_thread_code = "run_thread = Thread(target = "
+    # trial_setup_code = ".Trial_Setup(Curr_Exp=exp_filepath, Curr_Raw_Data=data_filepath))"
+    # run_trial_setup = trial_thread_code + exp_protocol_name + trial_setup_code
+    # run_trial_code2 = "run_thread.start()"
+    # top.destroy()
+    # exec(import_command)
+    # exec(run_trial_setup)
+    # exec(run_trial_code2)
 
 # Experiment Delete Function
 
