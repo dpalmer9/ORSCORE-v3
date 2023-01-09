@@ -22,6 +22,7 @@ class ExperimentConfigure:
         self.experiment_folder = self.curr_dir + self.folder_symbol + 'Experiments' + self.folder_symbol
         # Initialize ConfigParser object
         self.experiment_config = configparser.ConfigParser()
+        self.experiment_config['Protocol'] = dict()
         self.experiment_config['Protocol']['protocol'] = 'SOR'
 
         # Initialize parameters
@@ -325,74 +326,53 @@ class TrialConfigure:
         self.experiment_config = configparser.ConfigParser()
 
         # TK Vars
+        self.animal_id = StringVar()
         self.selected_condition = StringVar()
+        self.selected_object1 = StringVar()
+        self.selected_object2 = StringVar()
+        self.selected_novelside = IntVar()
+        self.selected_trialtype = IntVar()
 
     def import_experiment(self,experiment_file):
         self.experiment_config.read(experiment_file)
 
-    def run_start_trial(self):
+    def run_trial(self):
+        self.experiment_config['Trial Parameters'] = dict()
+        self.experiment_config['Trial Parameters']['animal_id'] = self.run_ID_prompt.get()
+
+        if self.selected_trialtype.get() == 1:
+            trial_type = "Sample"
+        if self.selected_trialtype.get() == 2:
+            trial_type = "Choice"
+        if self.selected_trialtype.get() == 3:
+            trial_type = "Both"
+        self.experiment_config['Trial Parameters']['trial_type'] = trial_type
+
+        trial_raw_condition_position = self.selected_condition.get()
+        conditions_list = self.experiment_config['Condition Parameters']['conditions']
+        conditions_list = conditions_list.split(',')
+        self.experiment_config['Trial Parameters']['condition'] = conditions_list[trial_raw_condition_position]
+
+        object_sample_position = self.selected_object1.get()
+        objects_list = self.experiment_config['Object List']['objects']
+        objects_list = objects_list.split(',')
+        self.experiment_config['Trial Parameters']['sample_object'] = objects_list[object_sample_position]
+
+        object_choice_position = self.selected_object2.get()
+        self.experiment_config['Trial Parameters']['choice_object'] = objects_list[object_choice_position]
+
+        if self.selected_novelside.get() == 1:
+            novel_side = "Left"
+        if self.selected_novelside.get() == 2:
+            novel_side = "Right"
+
+        self.experiment_config['Trial Parameters']['novel_side'] = novel_side
 
 
-
-        nonlocal trial_import_data
-
-        self.trial_import_data = list()
-
-        self.trial_import_data.append(self.Experiment_ID)
-
-        self.trial_raw_ID = self.run_ID_prompt.get()
-        self.trial_import_data.append(self.trial_raw_ID)
-
-        self.run_phase_choice_value = self.run_phase_choice.get()
-        if self.run_phase_choice_value == 1:
-            self.trial_raw_phase = "Sample"
-        if self.run_phase_choice_value == 2:
-            self.trial_raw_phase = "Choice"
-        if self.run_phase_choice_value == 3:
-            self.trial_raw_phase = "Both"
-        self.trial_import_data.append(self.trial_raw_phase)
-
-        self.trial_raw_condition = str()
-        self.trial_raw_condition_position = self.run_Drug_List.curselection()
-        self.trial_raw_condition = self.run_Drug_List.get(self.trial_raw_condition_position[0])
-        self.trial_import_data.append(self.trial_raw_condition)
-
-        self.trial_raw_obj1 = str()
-        self.trial_raw_obj1_position = self.run_objectsamp_list.curselection()
-        self.trial_raw_obj1 = self.run_objectsamp_list.get(self.trial_raw_obj1_position[0])
-        self.trial_import_data.append(self.trial_raw_obj1)
-
-        self.trial_raw_obj2 = str()
-        self.trial_raw_obj2_position = self.run_objectchoice_list.curselection()
-        self.trial_raw_obj2 = self.run_objectchoice_list.get(self.trial_raw_obj2_position[0])
-        self.trial_import_data.append(self.trial_raw_obj2)
-
-        self.trial_import_data.append(self.Left_Keybind)
-
-        self.trial_import_data.append(self.Right_Keybind)
-
-        self.trial_import_data.append(self.Keypress_Setup)
-
-        self.trial_import_data.append(self.Sample_Cut)
-
-        self.trial_import_data.append(self.Sample_Max)
-
-        self.trial_import_data.append(self.Choice_Cut)
-
-        self.trial_import_data.append(self.Choice_Max)
-
-        self.trial_import_data.append(self.Additional_Measure)
-
-        self.trial_novel_side = self.run_novel_side.get()
-        if self.trial_novel_side == 1:
-            self.trial_novel = "Left"
-        if self.trial_novel_side == 2:
-            self.trial_novel = "Right"
-
-        self.trial_import_data.append(self.trial_novel)
-        trial_import_data = self.trial_import_data
         self.top_run.destroy()
-        return self.trial_import_data
+
+    def cancel_trial(self,tk_window):
+        tk_window.destroy()
 
     def construct_gui(self):
         top_run = Tk()
@@ -405,7 +385,7 @@ class TrialConfigure:
         run_id_label = Label(top_run, text="Rat ID: ")
         run_id_label.grid(row=2, column=1)
 
-        run_id_entry = Entry(top_run)
+        run_id_entry = Entry(top_run, textvariable=self.animal_id)
         run_id_entry.grid(row=2, column=3)
 
         run_drug_label = Label(top_run, text="Condition: ")
@@ -418,6 +398,8 @@ class TrialConfigure:
         print(conditions_list)
         for condition in conditions_list:
             run_condition_listbox.insert(END, condition)
+        run_condition_listbox.bind('<<ListboxSelect>>',lambda: self.selected_condition.set(
+            run_condition_listbox.curselection()))
 
         run_object_label = Label(top_run, text="Objects")
         run_object_label.grid(row=5, column=2)
@@ -431,45 +413,45 @@ class TrialConfigure:
         objects_list = objects_list.split(',')
         for object_name in objects_list:
             run_object_sample_listbox.insert(END, object_name)
+        run_object_sample_listbox.bind('<<ListboxSelect>>', lambda: self.selected_object1.set(
+            run_object_sample_listbox.curselection()))
 
         run_object_choice_label = Label(top_run, text="Choice Object")
         run_object_choice_label.grid(row=6, column=3)
 
-        run_object_choice_list = Listbox(top_run, selectmode=SINGLE, height=4, exportselection=FALSE)
-        run_object_choice_list.grid(row=7, column=3)
+        run_object_choice_listbox = Listbox(top_run, selectmode=SINGLE, height=4, exportselection=FALSE)
+        run_object_choice_listbox.grid(row=7, column=3)
         for object_name in objects_list:
-            run_object_choice_list.insert(END, object_name)
+            run_object_choice_listbox.insert(END, object_name)
         run_novel_label = Label(top_run, text="Novel Side")
         run_novel_label.grid(row=8, column=2)
+        run_object_choice_listbox.bind('<<ListboxSelect>>', lambda: self.selected_object2.set(
+            run_object_sample_listbox.curselection()))
 
-        run_novel_side = IntVar()
-
-        run_novel_left = Radiobutton(top_run, text="Left", variable=run_novel_side, value=1,
-                                          command=lambda: run_novel_side.set(1))
+        run_novel_left = Radiobutton(top_run, text="Left", variable=self.selected_novelside, value=1,
+                                     command=lambda: self.selected_novelside.set(1))
         run_novel_left.grid(row=9, column=1)
 
-        run_novel_right = Radiobutton(top_run, text="Right", variable=run_novel_side, value=2,
-                                           command=lambda: run_novel_side.set(2))
+        run_novel_right = Radiobutton(top_run, text="Right", variable=self.selected_novelside, value=2,
+                                      command=lambda: self.selected_novelside.set(2))
         run_novel_right.grid(row=9, column=3)
 
-        run_phase_choice = IntVar()
-
-        run_phase_sample_only = Radiobutton(top_run, text="Sample", variable=run_phase_choice,
-                                                 value=1, command=lambda: run_phase_choice.set(1))
+        run_phase_sample_only = Radiobutton(top_run, text="Sample", variable=self.selected_trialtype, value=1,
+                                            command=lambda: self.selected_trialtype.set(1))
         run_phase_sample_only.grid(row=10, column=2)
 
-        run_phase_choice_only = Radiobutton(top_run, text="Choice", variable=run_phase_choice,
-                                                 value=2, command=lambda: run_phase_choice.set(2))
+        run_phase_choice_only = Radiobutton(top_run, text="Choice", variable=self.selected_trialtype, value=2,
+                                            command=lambda: self.selected_trialtype.set(2))
         run_phase_choice_only.grid(row=11, column=2)
 
-        run_phase_choice_both = Radiobutton(top_run, text="Sample/Choice", variable=run_phase_choice,
-                                                 value=3, command=lambda: run_phase_choice.set(3))
+        run_phase_choice_both = Radiobutton(top_run, text="Sample/Choice", variable=self.selected_trialtype, value=3,
+                                            command=lambda: self.selected_trialtype.set(3))
         run_phase_choice_both.grid(row=12, column=2)
 
-        run_start_trial_button = Button(top_run, text="Start Trial", command=self.run_start_trial)
+        run_start_trial_button = Button(top_run, text="Start Trial", command=self.run_trial)
         run_start_trial_button.grid(row=13, column=2)
 
-        run_cancel_trial_button = Button(top_run, text="Cancel", command=self.run_cancel_trial)
+        run_cancel_trial_button = Button(top_run, text="Cancel", command= lambda: self.cancel_trial(top_run))
         run_cancel_trial_button.grid(row=14, column=2)
 
         run_trial_parameter_frame = LabelFrame(top_run, text="Trial Parameters")
@@ -490,85 +472,13 @@ class TrialConfigure:
 
         top_run.mainloop()
 
+    class ActiveTrial:
+        def __init__(self):
+            return
 
+        def import_configuration(self,trial_config):
+            return
 
-## SOR Trial Setup ##
-def Trial_Setup(Curr_Exp, Curr_Raw_Data):
-    trial_import_data = str()
-    class Trial_Create():
-        def run_start_trial(self):
-            nonlocal trial_import_data
-
-            self.trial_import_data = list()
-
-            self.trial_import_data.append(self.Experiment_ID)
-
-            self.trial_raw_ID = self.run_ID_prompt.get()
-            self.trial_import_data.append(self.trial_raw_ID)
-
-            self.run_phase_choice_value = self.run_phase_choice.get()
-            if self.run_phase_choice_value == 1:
-                self.trial_raw_phase = "Sample"
-            if self.run_phase_choice_value == 2:
-                self.trial_raw_phase = "Choice"
-            if self.run_phase_choice_value == 3:
-                self.trial_raw_phase = "Both"
-            self.trial_import_data.append(self.trial_raw_phase)
-
-            self.trial_raw_condition = str()
-            self.trial_raw_condition_position = self.run_Drug_List.curselection()
-            self.trial_raw_condition = self.run_Drug_List.get(self.trial_raw_condition_position[0])
-            self.trial_import_data.append(self.trial_raw_condition)
-
-            self.trial_raw_obj1 = str()
-            self.trial_raw_obj1_position = self.run_objectsamp_list.curselection()
-            self.trial_raw_obj1 = self.run_objectsamp_list.get(self.trial_raw_obj1_position[0])
-            self.trial_import_data.append(self.trial_raw_obj1)
-
-            self.trial_raw_obj2 = str()
-            self.trial_raw_obj2_position = self.run_objectchoice_list.curselection()
-            self.trial_raw_obj2 = self.run_objectchoice_list.get(self.trial_raw_obj2_position[0])
-            self.trial_import_data.append(self.trial_raw_obj2)
-
-            self.trial_import_data.append(self.Left_Keybind)
-
-            self.trial_import_data.append(self.Right_Keybind)
-
-            self.trial_import_data.append(self.Keypress_Setup)
-
-            self.trial_import_data.append(self.Sample_Cut)
-
-            self.trial_import_data.append(self.Sample_Max)
-
-            self.trial_import_data.append(self.Choice_Cut)
-
-            self.trial_import_data.append(self.Choice_Max)
-
-            self.trial_import_data.append(self.Additional_Measure)
-
-            self.trial_novel_side = self.run_novel_side.get()
-            if self.trial_novel_side == 1:
-                self.trial_novel = "Left"
-            if self.trial_novel_side == 2:
-                self.trial_novel = "Right"
-
-            self.trial_import_data.append(self.trial_novel)
-            trial_import_data = self.trial_import_data
-            self.top_run.destroy()
-            return self.trial_import_data
-
-        def run_cancel_trial(self):
-            self.top_run.destroy()
-        def setphase1(self):
-            self.run_phase_choice.set(1)
-        def setphase2(self):
-            self.run_phase_choice.set(2)
-        def setphase3(self):
-            self.run_phase_choice.set(3)
-        def setnovel1(self):
-            self.run_novel_side.set(1)
-        def setnovel2(self):
-            self.run_novel_side.set(2)
 
     class Active_Trial():
 
