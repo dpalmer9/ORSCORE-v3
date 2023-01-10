@@ -333,6 +333,7 @@ class TrialConfigure:
         self.selected_novelside = IntVar()
         self.selected_trialtype = IntVar()
 
+
     def import_experiment(self,experiment_file):
         self.experiment_config.read(experiment_file)
 
@@ -367,6 +368,8 @@ class TrialConfigure:
             novel_side = "Right"
 
         self.experiment_config['Trial Parameters']['novel_side'] = novel_side
+
+        ActiveTrial(self.experiment_config)
 
 
         self.top_run.destroy()
@@ -460,49 +463,243 @@ class TrialConfigure:
         parameter_frame_task = Label(run_trial_parameter_frame, text="Experiment Type: SORv11")
         parameter_frame_task.grid(row=16, column=1)
 
+        sample_cutoff = int(self.experiment_config['Time Parameters']['sample_cutoff'])
+        sample_max = int(self.experiment_config['Time Parameters']['sample_max'])
+        choice_cutoff = int(self.experiment_config['Time Parameters']['choice_cutoff'])
+        choice_max = int(self.experiment_config['Time Parameters']['choice_max'])
+
         parameter_frame_sample = Label(run_trial_parameter_frame,
                                             text="Sample: Max = %i , Cutoff = %i " % (
-                                                self.Sample_Max, self.Sample_Cut))
+                                                sample_max, sample_cutoff))
         parameter_frame_sample.grid(row=17, column=1)
 
         parameter_frame_choice = Label(run_trial_parameter_frame,
                                             text="Choice: Max = %i, Cutoff = %i" % (
-                                                self.Choice_Max, self.Choice_Cut))
+                                                choice_max, choice_cutoff))
         parameter_frame_choice.grid(row=18, column=1)
 
         top_run.mainloop()
 
-    class ActiveTrial:
-        def __init__(self):
-            return
+#####################################################################################################
 
-        def import_configuration(self,trial_config):
-            return
+class ActiveTrial:
+    def __init__(self, trial_config):
+        # String Vars
+        self.left_explore_string_var = StringVar()
+        # Int Vars
+
+        # Variables
+        self.animal_id = trial_config['Trial Parameters']['animal_id']
+        self.trial_type = trial_config['Trial Parameters']['trial_type']
+        self.trial_condition = trial_config['Trial Parameters']['condition']
+        self.sample_object = trial_config['Trial Parameters']['sample_object']
+        self.choice_object = trial_config['Trial Parameters']['choice_object']
+        self.novel_side = trial_config['Trial Parameters']['novel_side']
+
+        self.key_bind_left = trial_config['Key Bindings']['left']
+        self.key_bind_right = trial_config['Key Bindings']['right']
+        self.key_bind_mode = int(trial_config['Key Bindings']['mode'])
+
+        self.sample_cutoff = int(trial_config['Time Parameters']['sample_cutoff'])
+        self.sample_max = int(trial_config['Time Parameters']['sample_max'])
+        self.choice_cutoff = int(trial_config['Time Parameters']['choice_cutoff'])
+        self.choice_max = int(trial_config['Time Parameters']['choice_max'])
+        self.additional_time = int(trial_config['Time Parameters']['additional_time'])
+
+        # Keybindings
+        if self.key_bind_mode == 1:
+            keyboard.add_hotkey(self.key_bind_left, trigger_on_release=False)
+            keyboard.add_hotkey(self.key_bind_right, trigger_on_release=False)
+        elif self.key_bind_mode == 2:
+            keyboard.add_hotkey(self.key_bind_left, lambda: print('left on'), trigger_on_release=False)
+            keyboard.add_hotkey(self.key_bind_left, lambda: print('left off'), trigger_on_release=True)
+            keyboard.add_hotkey(self.key_bind_right, lambda: print('right on'), trigger_on_release=False)
+            keyboard.add_hotkey(self.key_bind_right, lambda: print('right off'), trigger_on_release=True)
+
+        # GUI
+        # GUI Elements
+        self.trial_window = Tk()
+        self.trial_title = Label(self.trial_window, text="Active Trial Menu")
+        self.trial_title.grid(row=1, column=1)
+
+        self.trial_start_button = Button(self.trial_window, text="Start Trial", command=trial_menu_start)
+        self.trial_start_button.grid(row=1, column=2)
+
+        self.trial_finish_button = Button(self.trial_window, text="Finish Trial", command=trial_menu_finish,
+                                          state=DISABLED)
+        self.trial_finish_button.grid(row=2, column=2)
+
+        self.trial_cancel_button = Button(self.trial_window, text="Cancel Trial", command=trial_menu_cancel)
+        self.trial_cancel_button.grid(row=1, column=3)
+
+        self.trial_pause_button = Button(self.trial_window, text="Pause", command=trial_menu_pause, state=DISABLED)
+        self.trial_pause_button.grid(row=1, column=4)
+
+        self.trial_resume_button = Button(self.trial_window, text="Resume", command=trial_menu_resume, state=DISABLED)
+        self.trial_resume_button.grid(row=2, column=4)
+
+        self.trial_restart_button = Button(self.trial_window, text="Restart", command=trial_menu_restart,
+                                           state=DISABLED)
+        self.trial_restart_button.grid(row=2, column=3)
+
+        # Trial Status Window
+        self.trial_status_elapsed_label = Label(self.trial_window, text="Time Elapsed")
+        self.trial_status_elapsed_label.grid(row=3, column=1)
+
+        self.trial_status_remaining_label = Label(self.trial_window, text="Time Remaining")
+        self.trial_status_remaining_label.grid(row=3, column=2)
+
+        self.trial_status_left_label = Label(self.trial_window, text="Left Explore")
+        self.trial_status_left_label.grid(row=3, column=3)
+
+        self.trial_status_right_label = Label(self.trial_window, text="Right Explore")
+        self.trial_status_right_label.grid(row=3, column=4)
+
+        self.trial_status_total_elapsed = Label(self.trial_window, textvariable=self.time_elapsed_string)
+        self.trial_status_total_elapsed.grid(row=4, column=1)
+
+        self.trial_status_total_remaining = Label(self.trial_window, textvariable=self.time_remaining_string)
+        self.trial_status_total_remaining.grid(row=4, column=2)
+
+        self.trial_status_left_elapsed = Label(self.trial_window, textvariable=self.left_explore_length_string)
+        self.trial_status_left_elapsed.grid(row=4, column=3)
+
+        self.trial_status_right_elapsed = Label(self.trial_window, textvariable=self.right_explore_length_string)
+        self.trial_status_right_elapsed.grid(row=4, column=4)
+
+        ## Object Exploration Status ##
+        self.frame_left_explore_status = LabelFrame(self.trial_window, bg='white')
+        self.frame_left_explore_status.grid(row=5, column=1)
+
+        self.left_explore_status = Label(self.frame_left_explore_status, text="Left Object")
+        self.left_explore_status.pack()
+
+        self.frame_right_explore_status = LabelFrame(self.trial_window, bg='white')
+        self.frame_right_explore_status.grid(row=5, column=4)
+
+        self.right_explore_status = Label(self.frame_right_explore_status, text="Right Object")
+        self.right_explore_status.pack()
+
+        self.trial_window.update()
+        self.trial_window.mainloop()
+
+    # Start Function
+    def trial_start(self):
+        self.trial_start_button.config(state=DISABLED)
+        self.trial_pause_button.config(state='normal')
+        self.trial_restart_button.config(state='normal')
+        self.trial_finish_button.config(state='normal')
+
+        self.start_date = time.strftime('%d %m %Y,%H:%M:%S')
+        self.start_time = time.time()
+
+    def time_update(self):
 
 
-    class Active_Trial():
+        return
 
-        def __init__(self, trial_data):
-            self.trial_data = trial_data
-            self.trial_expid = str(self.trial_data[0])
-            self.trial_anid = str(self.trial_data[1])
-            self.trial_phase = str(self.trial_data[2])
-            self.trial_condition = str(self.trial_data[3])
-            self.trial_obj1 = str(self.trial_data[4])
-            self.trial_obj2 = str(self.trial_data[5])
-            self.Left_Keybind = str(self.trial_data[6])
-            self.Right_Keybind = str(self.trial_data[7])
-            self.Keypress_Setup = int(self.trial_data[8])
-            self.Sample_Cut = int(self.trial_data[9])
-            self.Sample_Max = int(self.trial_data[10])
-            self.Choice_Cut = int(self.trial_data[11])
-            self.Choice_Max = int(self.trial_data[12])
-            self.Additional_Measure = int(self.trial_data[13])
-            self.Novel_Side = str(self.trial_data[14])
-            self.trial_parameter_reset()
-            self.run_window()
+#####################################################################################################
 
-        def trial_parameter_reset(self):
+class Active_Trial():
+
+    def __init__(self, trial_data):
+        self.trial_data = trial_data
+        self.trial_expid = str(self.trial_data[0])
+        self.trial_anid = str(self.trial_data[1])
+        self.trial_phase = str(self.trial_data[2])
+        self.trial_condition = str(self.trial_data[3])
+        self.trial_obj1 = str(self.trial_data[4])
+        self.trial_obj2 = str(self.trial_data[5])
+        self.Left_Keybind = str(self.trial_data[6])
+        self.Right_Keybind = str(self.trial_data[7])
+        self.Keypress_Setup = int(self.trial_data[8])
+        self.Sample_Cut = int(self.trial_data[9])
+        self.Sample_Max = int(self.trial_data[10])
+        self.Choice_Cut = int(self.trial_data[11])
+        self.Choice_Max = int(self.trial_data[12])
+        self.Additional_Measure = int(self.trial_data[13])
+        self.Novel_Side = str(self.trial_data[14])
+        self.trial_parameter_reset()
+        self.run_window()
+
+    def trial_parameter_reset(self):
+        self.left_explore_total = 0
+        self.right_explore_total = 0
+
+        self.active_left_score = 0
+        self.active_right_score = 0
+        self.explore_total = 0
+
+        self.time_elapsed = 0
+        self.time_remaining = 0
+
+        self.start_time = 0
+
+        self.pause_start = 0
+        self.pause_end = 0
+        self.pause_length = 0
+
+        self.bout_count = 0
+        self.bout_start = 0
+        self.bout_start_time = 0
+
+        self.trial_active = False
+        self.bout_active = False
+        self.additional_calculated = False
+
+        self.bout_explore = "Neither"
+        self.pressed_key = ""
+
+        self.trial_record = str()
+
+        self.current_dir = os.getcwd()
+
+    def run_window(self):
+        self.trial_window = Tk()
+        global icon
+        self.trial_window.iconbitmap(icon)
+
+        def trial_menu_start():
+            self.trial_menu_pause_button.config(state="normal")
+            self.trial_menu_start_button.config(state=DISABLED)
+            self.trial_menu_restart_button.config(state="normal")
+            self.trial_menu_finish_button.config(state="normal")
+
+            self.trial_active = True
+
+            self.start_time = time.time()
+            self.start_date = time.strftime("%d %m %Y,%H:%M:%S")
+
+        ## Finish Trial ##
+        def trial_menu_finish():
+            self.trial_finish()
+
+        ## Cancel Trial ##
+        def trial_menu_cancel():
+            self.trial_window.destroy()
+
+        ## Pause Trial ##
+        def trial_menu_pause():
+
+            if self.bout_active == False:
+                self.trial_active = False
+                self.pause_start = time.time()
+                self.trial_menu_resume_button.config(state="normal")
+                self.trial_menu_pause_button.config(state=DISABLED)
+            if self.bout_active == True:
+                return
+
+        ## Resume Trial ##
+        def trial_menu_resume():
+            self.pause_end = time.time()
+            self.trial_active = True
+            self.pause_length = self.pause_length + (self.pause_end - self.pause_start)
+            self.trial_menu_resume_button.config(state=DISABLED)
+            self.trial_menu_pause_button.config(state="normal")
+
+        ## Restart Trial ##
+        def trial_menu_restart():
+
             self.left_explore_total = 0
             self.right_explore_total = 0
 
@@ -532,188 +729,42 @@ class TrialConfigure:
 
             self.trial_record = str()
 
-            self.current_dir = os.getcwd()
+            self.trial_menu_finish_button.config(state=DISABLED)
+            self.trial_menu_restart_button.config(state=DISABLED)
+            self.trial_menu_finish_button.config(state=DISABLED)
+            self.trial_menu_pause_button.config(state=DISABLED)
+            self.trial_menu_resume_button.config(state=DISABLED)
+            self.trial_menu_start_button.config(state="normal")
 
-        def run_window(self):
-            self.trial_window = Tk()
-            global icon
-            self.trial_window.iconbitmap(icon)
+            return
 
-            def trial_menu_start():
-                self.trial_menu_pause_button.config(state="normal")
-                self.trial_menu_start_button.config(state=DISABLED)
-                self.trial_menu_restart_button.config(state="normal")
-                self.trial_menu_finish_button.config(state="normal")
-
-                self.trial_active = True
-
-                self.start_time = time.time()
-                self.start_date = time.strftime("%d %m %Y,%H:%M:%S")
-
-            ## Finish Trial ##
-            def trial_menu_finish():
-                self.trial_finish()
-
-            ## Cancel Trial ##
-            def trial_menu_cancel():
-                self.trial_window.destroy()
-
-            ## Pause Trial ##
-            def trial_menu_pause():
-
-                if self.bout_active == False:
-                    self.trial_active = False
-                    self.pause_start = time.time()
-                    self.trial_menu_resume_button.config(state="normal")
-                    self.trial_menu_pause_button.config(state=DISABLED)
-                if self.bout_active == True:
-                    return
-
-            ## Resume Trial ##
-            def trial_menu_resume():
-                self.pause_end = time.time()
-                self.trial_active = True
-                self.pause_length = self.pause_length + (self.pause_end - self.pause_start)
-                self.trial_menu_resume_button.config(state=DISABLED)
-                self.trial_menu_pause_button.config(state="normal")
-
-            ## Restart Trial ##
-            def trial_menu_restart():
-
-                self.left_explore_total = 0
-                self.right_explore_total = 0
-
-                self.active_left_score = 0
-                self.active_right_score = 0
-                self.explore_total = 0
-
-                self.time_elapsed = 0
-                self.time_remaining = 0
-
-                self.start_time = 0
-
-                self.pause_start = 0
-                self.pause_end = 0
-                self.pause_length = 0
-
-                self.bout_count = 0
-                self.bout_start = 0
-                self.bout_start_time = 0
-
-                self.trial_active = False
-                self.bout_active = False
-                self.additional_calculated = False
-
-                self.bout_explore = "Neither"
-                self.pressed_key = ""
-
-                self.trial_record = str()
-
-                self.trial_menu_finish_button.config(state=DISABLED)
-                self.trial_menu_restart_button.config(state=DISABLED)
-                self.trial_menu_finish_button.config(state=DISABLED)
-                self.trial_menu_pause_button.config(state=DISABLED)
-                self.trial_menu_resume_button.config(state=DISABLED)
-                self.trial_menu_start_button.config(state="normal")
-
-                return
-
-            ## Key Press Scoring ##
+        ## Key Press Scoring ##
 
 
-            def object_score_measures(event):
-                self.pressed_key = event.char
-                if self.Keypress_Setup == 1:
-                    if (self.pressed_key == self.Left_Keybind) and (self.bout_active == False) and (
-                                self.bout_explore == "Neither") and (
-                                self.trial_active == True):
-                        self.bout_count = self.bout_count + 1
-                        self.bout_start = time.time() - self.pause_length
-                        self.bout_start_time = self.bout_start - self.start_time
-                        self.bout_explore = "Left"
-                        self.bout_active = True
-                        self.frame_left_explore_status.configure(bg='green')
-                        self.left_explore_status.configure(bg='green')
-                        self.pressed_key = ""
-                    if (self.pressed_key == self.Left_Keybind) and (self.bout_active == True) and (
-                                self.bout_explore == "Left") and (
-                                self.trial_active == True):
-                        self.bout_end = time.time() - self.pause_length
-                        self.bout_length = self.bout_end - self.bout_start
-                        self.left_explore_total = self.left_explore_total + self.bout_length
-                        self.bout_details = "%f, %f, %s, %f" % (
-                            self.bout_count, self.bout_start_time, self.bout_explore, self.bout_length)
-                        if not self.trial_record:
-                            self.trial_record = "\n" + "%s, %s, %s" % (self.trial_anid, self.start_date, self.trial_condition) + "\n" + self.bout_details
-                        else:
-                            self.trial_record = self.trial_record + "\n" + self.bout_details
-                        self.bout_active = False
-                        self.bout_explore = "Neither"
-                        self.frame_left_explore_status.configure(bg='white')
-                        self.left_explore_status.configure(bg='white')
-                        self.pressed_key = ""
-                    if (self.pressed_key == self.Right_Keybind) and (self.bout_active == False) and (
-                                self.bout_explore == "Neither") and (
-                                self.trial_active == True):
-                        self.bout_count = self.bout_count + 1
-                        self.bout_start = time.time() - self.pause_length
-                        self.bout_start_time = self.bout_start - self.start_time - self.pause_length
-                        self.bout_explore = "Right"
-                        self.bout_active = True
-                        self.frame_right_explore_status.configure(bg='green')
-                        self.right_explore_status.configure(bg='green')
-                        self.pressed_key = ""
-                    if (self.pressed_key == self.Right_Keybind) and (self.bout_active == True) and (
-                                self.bout_explore == "Right") and (
-                                self.trial_active == True):
-                        self.bout_end = time.time() - self.pause_length
-                        self.bout_length = self.bout_end - self.bout_start
-                        self.right_explore_total = self.right_explore_total + self.bout_length
-                        self.bout_details = "%f, %f, %s, %f" % (
-                            self.bout_count, self.bout_start_time, self.bout_explore, self.bout_length)
-                        if not self.trial_record:
-                            self.trial_record = "\n" + "%s, %s, %s" % (str(self.trial_anid), str(self.start_date),
-                                                                 str(self.trial_condition)) + "\n" + self.bout_details
-                        else:
-                            self.trial_record = self.trial_record + "\n" + self.bout_details
-                        self.bout_active = False
-                        self.bout_explore = "Neither"
-                        self.frame_right_explore_status.configure(bg='white')
-                        self.right_explore_status.configure(bg='white')
-                        self.pressed_key = ""
-                if self.Keypress_Setup == 2:
-                    if (self.pressed_key == self.Left_Keybind) and (self.bout_active == False) and (
-                                self.bout_explore == "Neither") and (
-                                self.trial_active == True):
-                        self.bout_count = self.bout_count + 1
-                        self.bout_start = time.time() - self.pause_length
-                        self.bout_start_time = self.bout_start - self.start_time
-                        self.bout_explore = "Left"
-                        self.frame_left_explore_status.configure(bg='green')
-                        self.left_explore_status.configure(bg='green')
-                        self.bout_active = True
-                    if (self.pressed_key == self.Right_Keybind) and (self.bout_active == False) and (
-                                self.bout_explore == "Neither") and (
-                                self.trial_active == True):
-                        self.bout_count = self.bout_count + 1
-                        self.bout_start = time.time() - self.pause_length
-                        self.bout_start_time = self.bout_start - self.start_time
-                        self.bout_explore = "Right"
-                        self.frame_right_explore_status.configure(bg='green')
-                        self.right_explore_status.configure(bg='green')
-                        self.bout_active = True
-
-            def object_score_release(event):
+        def object_score_measures(event):
+            self.pressed_key = event.char
+            if self.Keypress_Setup == 1:
+                if (self.pressed_key == self.Left_Keybind) and (self.bout_active == False) and (
+                            self.bout_explore == "Neither") and (
+                            self.trial_active == True):
+                    self.bout_count = self.bout_count + 1
+                    self.bout_start = time.time() - self.pause_length
+                    self.bout_start_time = self.bout_start - self.start_time
+                    self.bout_explore = "Left"
+                    self.bout_active = True
+                    self.frame_left_explore_status.configure(bg='green')
+                    self.left_explore_status.configure(bg='green')
+                    self.pressed_key = ""
                 if (self.pressed_key == self.Left_Keybind) and (self.bout_active == True) and (
-                            self.bout_explore == "Left") and (self.trial_active == True):
+                            self.bout_explore == "Left") and (
+                            self.trial_active == True):
                     self.bout_end = time.time() - self.pause_length
                     self.bout_length = self.bout_end - self.bout_start
                     self.left_explore_total = self.left_explore_total + self.bout_length
                     self.bout_details = "%f, %f, %s, %f" % (
                         self.bout_count, self.bout_start_time, self.bout_explore, self.bout_length)
                     if not self.trial_record:
-                        self.trial_record = "\n" + "%s, %s, %s" % (str(self.trial_anid), str(self.start_date),
-                                                             str(self.trial_condition)) + "\n" + self.bout_details
+                        self.trial_record = "\n" + "%s, %s, %s" % (self.trial_anid, self.start_date, self.trial_condition) + "\n" + self.bout_details
                     else:
                         self.trial_record = self.trial_record + "\n" + self.bout_details
                     self.bout_active = False
@@ -721,8 +772,20 @@ class TrialConfigure:
                     self.frame_left_explore_status.configure(bg='white')
                     self.left_explore_status.configure(bg='white')
                     self.pressed_key = ""
+                if (self.pressed_key == self.Right_Keybind) and (self.bout_active == False) and (
+                            self.bout_explore == "Neither") and (
+                            self.trial_active == True):
+                    self.bout_count = self.bout_count + 1
+                    self.bout_start = time.time() - self.pause_length
+                    self.bout_start_time = self.bout_start - self.start_time - self.pause_length
+                    self.bout_explore = "Right"
+                    self.bout_active = True
+                    self.frame_right_explore_status.configure(bg='green')
+                    self.right_explore_status.configure(bg='green')
+                    self.pressed_key = ""
                 if (self.pressed_key == self.Right_Keybind) and (self.bout_active == True) and (
-                            self.bout_explore == "Right") and (self.trial_active == True):
+                            self.bout_explore == "Right") and (
+                            self.trial_active == True):
                     self.bout_end = time.time() - self.pause_length
                     self.bout_length = self.bout_end - self.bout_start
                     self.right_explore_total = self.right_explore_total + self.bout_length
@@ -738,318 +801,375 @@ class TrialConfigure:
                     self.frame_right_explore_status.configure(bg='white')
                     self.right_explore_status.configure(bg='white')
                     self.pressed_key = ""
+            if self.Keypress_Setup == 2:
+                if (self.pressed_key == self.Left_Keybind) and (self.bout_active == False) and (
+                            self.bout_explore == "Neither") and (
+                            self.trial_active == True):
+                    self.bout_count = self.bout_count + 1
+                    self.bout_start = time.time() - self.pause_length
+                    self.bout_start_time = self.bout_start - self.start_time
+                    self.bout_explore = "Left"
+                    self.frame_left_explore_status.configure(bg='green')
+                    self.left_explore_status.configure(bg='green')
+                    self.bout_active = True
+                if (self.pressed_key == self.Right_Keybind) and (self.bout_active == False) and (
+                            self.bout_explore == "Neither") and (
+                            self.trial_active == True):
+                    self.bout_count = self.bout_count + 1
+                    self.bout_start = time.time() - self.pause_length
+                    self.bout_start_time = self.bout_start - self.start_time
+                    self.bout_explore = "Right"
+                    self.frame_right_explore_status.configure(bg='green')
+                    self.right_explore_status.configure(bg='green')
+                    self.bout_active = True
 
-            def object_press_space(event):
-                nonlocal trial_menu_pause
-                nonlocal trial_menu_resume
-                self.pressed_key == "<space>"
-                if (self.pressed_key == "<space>") and (self.trial_active == True) and (self.time_elapsed > 0):
-                    trial_menu_pause()
-                    self.pressed_key = ""
-                if (self.pressed_key == "<space>") and (self.trial_active == False) and (self.time_elapsed > 0):
-                    trial_menu_resume()
-                    self.pressed_key = ""
+        def object_score_release(event):
+            if (self.pressed_key == self.Left_Keybind) and (self.bout_active == True) and (
+                        self.bout_explore == "Left") and (self.trial_active == True):
+                self.bout_end = time.time() - self.pause_length
+                self.bout_length = self.bout_end - self.bout_start
+                self.left_explore_total = self.left_explore_total + self.bout_length
+                self.bout_details = "%f, %f, %s, %f" % (
+                    self.bout_count, self.bout_start_time, self.bout_explore, self.bout_length)
+                if not self.trial_record:
+                    self.trial_record = "\n" + "%s, %s, %s" % (str(self.trial_anid), str(self.start_date),
+                                                         str(self.trial_condition)) + "\n" + self.bout_details
+                else:
+                    self.trial_record = self.trial_record + "\n" + self.bout_details
+                self.bout_active = False
+                self.bout_explore = "Neither"
+                self.frame_left_explore_status.configure(bg='white')
+                self.left_explore_status.configure(bg='white')
+                self.pressed_key = ""
+            if (self.pressed_key == self.Right_Keybind) and (self.bout_active == True) and (
+                        self.bout_explore == "Right") and (self.trial_active == True):
+                self.bout_end = time.time() - self.pause_length
+                self.bout_length = self.bout_end - self.bout_start
+                self.right_explore_total = self.right_explore_total + self.bout_length
+                self.bout_details = "%f, %f, %s, %f" % (
+                    self.bout_count, self.bout_start_time, self.bout_explore, self.bout_length)
+                if not self.trial_record:
+                    self.trial_record = "\n" + "%s, %s, %s" % (str(self.trial_anid), str(self.start_date),
+                                                         str(self.trial_condition)) + "\n" + self.bout_details
+                else:
+                    self.trial_record = self.trial_record + "\n" + self.bout_details
+                self.bout_active = False
+                self.bout_explore = "Neither"
+                self.frame_right_explore_status.configure(bg='white')
+                self.right_explore_status.configure(bg='white')
+                self.pressed_key = ""
 
-            ## Trial Menu Window ##
+        def object_press_space(event):
+            nonlocal trial_menu_pause
+            nonlocal trial_menu_resume
+            self.pressed_key == "<space>"
+            if (self.pressed_key == "<space>") and (self.trial_active == True) and (self.time_elapsed > 0):
+                trial_menu_pause()
+                self.pressed_key = ""
+            if (self.pressed_key == "<space>") and (self.trial_active == False) and (self.time_elapsed > 0):
+                trial_menu_resume()
+                self.pressed_key = ""
 
-            self.left_explore_length_string = StringVar()
-            self.left_explore_length_string.set(self.active_left_score)
-            self.right_explore_length_string = StringVar()
-            self.right_explore_length_string.set(str(self.active_right_score))
-            self.time_elapsed_string = StringVar()
-            self.time_elapsed_string.set(str(self.time_elapsed))
-            self.time_remaining_string = StringVar()
-            self.time_remaining_string.set(str(self.time_remaining))
-            self.trial_menu_title = Label(self.trial_window, text="Active Trial Menu")
-            self.trial_menu_title.grid(row=1, column=1)
+        ## Trial Menu Window ##
 
-            self.trial_menu_start_button = Button(self.trial_window, text="Start Trial", command=trial_menu_start)
-            self.trial_menu_start_button.grid(row=1, column=2)
+        self.left_explore_length_string = StringVar()
+        self.left_explore_length_string.set(self.active_left_score)
+        self.right_explore_length_string = StringVar()
+        self.right_explore_length_string.set(str(self.active_right_score))
+        self.time_elapsed_string = StringVar()
+        self.time_elapsed_string.set(str(self.time_elapsed))
+        self.time_remaining_string = StringVar()
+        self.time_remaining_string.set(str(self.time_remaining))
+        self.trial_menu_title = Label(self.trial_window, text="Active Trial Menu")
+        self.trial_menu_title.grid(row=1, column=1)
 
-            self.trial_menu_finish_button = Button(self.trial_window, text="Finish Trial", command=trial_menu_finish,
-                                                   state=DISABLED)
-            self.trial_menu_finish_button.grid(row=2, column=2)
+        self.trial_menu_start_button = Button(self.trial_window, text="Start Trial", command=trial_menu_start)
+        self.trial_menu_start_button.grid(row=1, column=2)
 
-            self.trial_menu_cancel_button = Button(self.trial_window, text="Cancel Trial", command=trial_menu_cancel)
-            self.trial_menu_cancel_button.grid(row=1, column=3)
+        self.trial_menu_finish_button = Button(self.trial_window, text="Finish Trial", command=trial_menu_finish,
+                                               state=DISABLED)
+        self.trial_menu_finish_button.grid(row=2, column=2)
 
-            self.trial_menu_pause_button = Button(self.trial_window, text="Pause", command=trial_menu_pause,
-                                                  state=DISABLED)
-            self.trial_menu_pause_button.grid(row=1, column=4)
+        self.trial_menu_cancel_button = Button(self.trial_window, text="Cancel Trial", command=trial_menu_cancel)
+        self.trial_menu_cancel_button.grid(row=1, column=3)
 
-            self.trial_menu_resume_button = Button(self.trial_window, text="Resume", command=trial_menu_resume,
-                                                   state=DISABLED)
-            self.trial_menu_resume_button.grid(row=2, column=4)
+        self.trial_menu_pause_button = Button(self.trial_window, text="Pause", command=trial_menu_pause,
+                                              state=DISABLED)
+        self.trial_menu_pause_button.grid(row=1, column=4)
 
-            self.trial_menu_restart_button = Button(self.trial_window, text="Restart", command=trial_menu_restart,
-                                                    state=DISABLED)
-            self.trial_menu_restart_button.grid(row=2, column=3)
+        self.trial_menu_resume_button = Button(self.trial_window, text="Resume", command=trial_menu_resume,
+                                               state=DISABLED)
+        self.trial_menu_resume_button.grid(row=2, column=4)
 
-            ## Trial Status Window ##
-            self.trial_status_var_elapsed_label = Label(self.trial_window, text="Time Elapsed")
-            self.trial_status_var_elapsed_label.grid(row=3, column=1)
-            self.trial_status_var_remaining_label = Label(self.trial_window, text="Time Remaining")
-            self.trial_status_var_remaining_label.grid(row=3, column=2)
-            self.trial_status_var_left_label = Label(self.trial_window, text="Left Explore")
-            self.trial_status_var_left_label.grid(row=3, column=3)
-            self.trial_status_var_right_label = Label(self.trial_window, text="Right Explore")
-            self.trial_status_var_right_label.grid(row=3, column=4)
-            self.trial_status_total_elapsed = Label(self.trial_window, textvariable=self.time_elapsed_string)
-            self.trial_status_total_elapsed.grid(row=4, column=1)
-            self.trial_status_total_remaining = Label(self.trial_window, textvariable=self.time_remaining_string)
-            self.trial_status_total_remaining.grid(row=4, column=2)
-            self.trial_status_left_elapsed = Label(self.trial_window, textvariable=self.left_explore_length_string)
-            self.trial_status_left_elapsed.grid(row=4, column=3)
-            self.trial_status_right_elapsed = Label(self.trial_window, textvariable=self.right_explore_length_string)
-            self.trial_status_right_elapsed.grid(row=4, column=4)
+        self.trial_menu_restart_button = Button(self.trial_window, text="Restart", command=trial_menu_restart,
+                                                state=DISABLED)
+        self.trial_menu_restart_button.grid(row=2, column=3)
 
-            ## Object Exploration Status ##
-            self.frame_left_explore_status = LabelFrame(self.trial_window, bg='white')
-            self.frame_left_explore_status.grid(row=5, column=1)
-            self.left_explore_status = Label(self.frame_left_explore_status, text="Left Object")
-            self.left_explore_status.pack()
+        ## Trial Status Window ##
+        self.trial_status_var_elapsed_label = Label(self.trial_window, text="Time Elapsed")
+        self.trial_status_var_elapsed_label.grid(row=3, column=1)
+        self.trial_status_var_remaining_label = Label(self.trial_window, text="Time Remaining")
+        self.trial_status_var_remaining_label.grid(row=3, column=2)
+        self.trial_status_var_left_label = Label(self.trial_window, text="Left Explore")
+        self.trial_status_var_left_label.grid(row=3, column=3)
+        self.trial_status_var_right_label = Label(self.trial_window, text="Right Explore")
+        self.trial_status_var_right_label.grid(row=3, column=4)
+        self.trial_status_total_elapsed = Label(self.trial_window, textvariable=self.time_elapsed_string)
+        self.trial_status_total_elapsed.grid(row=4, column=1)
+        self.trial_status_total_remaining = Label(self.trial_window, textvariable=self.time_remaining_string)
+        self.trial_status_total_remaining.grid(row=4, column=2)
+        self.trial_status_left_elapsed = Label(self.trial_window, textvariable=self.left_explore_length_string)
+        self.trial_status_left_elapsed.grid(row=4, column=3)
+        self.trial_status_right_elapsed = Label(self.trial_window, textvariable=self.right_explore_length_string)
+        self.trial_status_right_elapsed.grid(row=4, column=4)
 
-            self.frame_right_explore_status = LabelFrame(self.trial_window, bg='white')
-            self.frame_right_explore_status.grid(row=5, column=4)
-            self.right_explore_status = Label(self.frame_right_explore_status, text="Right Object")
-            self.right_explore_status.pack()
+        ## Object Exploration Status ##
+        self.frame_left_explore_status = LabelFrame(self.trial_window, bg='white')
+        self.frame_left_explore_status.grid(row=5, column=1)
+        self.left_explore_status = Label(self.frame_left_explore_status, text="Left Object")
+        self.left_explore_status.pack()
 
-            self.trial_window.bind("<Key>", object_score_measures)
-            if (self.Keypress_Setup == 2):
-                self.trial_window.bind("<KeyRelease>", object_score_release)
-            self.trial_window.bind("<space>", object_press_space)
+        self.frame_right_explore_status = LabelFrame(self.trial_window, bg='white')
+        self.frame_right_explore_status.grid(row=5, column=4)
+        self.right_explore_status = Label(self.frame_right_explore_status, text="Right Object")
+        self.right_explore_status.pack()
 
-            self.trial_window.update()
-            self.time_update()
-            self.trial_window.mainloop()
+        self.trial_window.bind("<Key>", object_score_measures)
+        if (self.Keypress_Setup == 2):
+            self.trial_window.bind("<KeyRelease>", object_score_release)
+        self.trial_window.bind("<space>", object_press_space)
 
-        def time_update(self):
-            if self.start_time == 0:
-                self.time_elapsed = 0
-            if (self.start_time != 0) and (self.trial_active == True):
-                self.time_elapsed = time.time() - self.start_time - self.pause_length
-            if (self.start_time != 0) and (self.trial_active == False):
-                self.time_elapsed = self.time_elapsed
-            if ((self.trial_phase == "Sample") or (self.trial_phase == "Both")) and (self.trial_active == True):
-                self.time_remaining = self.Sample_Max - self.time_elapsed
-            if (self.trial_phase == "Choice") and (self.trial_active == True):
-                self.time_remaining = self.Choice_Max - self.time_elapsed
-            if (self.trial_active == False):
-                self.time_remaining = self.time_remaining
-            if (self.trial_active == True) and (self.bout_active == True) and (self.bout_explore == "Left"):
-                self.left_scoring = (time.time() - self.bout_start)
-                self.active_left_score = self.left_explore_total + ((time.time() - self.pause_length) - self.bout_start)
-            if (self.trial_active == True) and (self.bout_active == True) and (self.bout_explore == "Right"):
-                self.right_scoring = (time.time() - self.bout_start)
-                self.active_right_score = self.right_explore_total + ((time.time() - self.pause_length) - self.bout_start)
-            if (self.time_elapsed >= self.Additional_Measure) and (self.Additional_Measure != 0) and (self.additional_calculated == False):
-                self.additional_left = self.left_explore_total
-                self.additional_right = self.right_explore_total
-                if (self.Novel_Side == "Left"):
-                    self.additional_novel = self.additional_left
-                    self.additional_familiar = self.additional_right
-                    if (self.additional_left == 0) and (self.additional_right > 0):
-                        self.additional_discrim_ratio = 0
-                    elif (self.additional_right == 0) and (self.additional_left > 0):
-                        self.additional_discrim_ratio = 1
-                    elif (self.additional_right == 0) and (self.additional_left == 0):
-                        self.additional_discrim_ratio = 0
-                    else:
-                        self.additional_discrim_ratio = (self.additional_left - self.additional_right) / (self.additional_left + self.additional_right)
-                elif (self.Novel_Side == "Right"):
-                    self.additional_novel = self.additional_right
-                    self.additional_familiar = self.additional_left
-                    if (self.additional_left == 0) and (self.additional_right > 0):
-                        self.additional_discrim_ratio = 1
-                    elif (self.additional_right == 0) and (self.additional_left > 0):
-                        self.additional_discrim_ratio = 0
-                    elif (self.additional_right == 0) and (self.additional_left == 0):
-                        self.additional_discrim_ratio = 0
-                    else:
-                        self.additional_discrim_ratio = (self.additional_right - self.additional_left) / (self.additional_left + self.additional_right)
-                elif (self.Novel_Side == "NA"):
-                    self.additional_novel = self.additional_left
-                    self.additional_familiar = self.additional_right
-                    if (self.additional_left == 0) and (self.additional_right > 0):
-                        self.additional_discrim_ratio = 0
-                    elif (self.additional_right == 0) and (self.additional_left > 0):
-                        self.additional_discrim_ratio = 1
-                    elif (self.additional_right == 0) and (self.additional_left == 0):
-                        self.additional_discrim_ratio = 0
-                    else:
-                        self.additional_discrim_ratio = (self.additional_left - self.additional_right) / (self.additional_left + self.additional_right)
-                self.additional_calculated = True
-            if ((self.time_elapsed >= self.Sample_Max) and ((self.trial_phase == "Sample") or (self.trial_phase == "Both"))) or (
-                        (self.time_elapsed >= self.Choice_Max) and (self.trial_phase == "Choice")):
-                self.trial_finish()
-            if (((self.active_left_score + self.active_right_score) >= self.Sample_Cut) and (
-                    (self.trial_phase == "Sample") or (self.trial_phase == "Both"))) or (
-                        ((self.active_left_score + self.active_right_score) >= self.Choice_Cut) and (
-                                self.trial_phase == "Choice")):
-                self.trial_finish()
-            self.time_elapsed_string.set(round(self.time_elapsed, 2))
-            self.time_remaining_string.set(round(self.time_remaining, 2))
-            self.left_explore_length_string.set(round(self.active_left_score, 2))
-            self.right_explore_length_string.set(round(self.active_right_score, 2))
-            self.trial_window.after(10, self.time_update)
+        self.trial_window.update()
+        self.time_update()
+        self.trial_window.mainloop()
+
+    def time_update(self):
+        if self.start_time == 0:
+            self.time_elapsed = 0
+        if (self.start_time != 0) and (self.trial_active == True):
+            self.time_elapsed = time.time() - self.start_time - self.pause_length
+        if (self.start_time != 0) and (self.trial_active == False):
+            self.time_elapsed = self.time_elapsed
+        if ((self.trial_phase == "Sample") or (self.trial_phase == "Both")) and (self.trial_active == True):
+            self.time_remaining = self.Sample_Max - self.time_elapsed
+        if (self.trial_phase == "Choice") and (self.trial_active == True):
+            self.time_remaining = self.Choice_Max - self.time_elapsed
+        if (self.trial_active == False):
+            self.time_remaining = self.time_remaining
+        if (self.trial_active == True) and (self.bout_active == True) and (self.bout_explore == "Left"):
+            self.left_scoring = (time.time() - self.bout_start)
+            self.active_left_score = self.left_explore_total + ((time.time() - self.pause_length) - self.bout_start)
+        if (self.trial_active == True) and (self.bout_active == True) and (self.bout_explore == "Right"):
+            self.right_scoring = (time.time() - self.bout_start)
+            self.active_right_score = self.right_explore_total + ((time.time() - self.pause_length) - self.bout_start)
+        if (self.time_elapsed >= self.Additional_Measure) and (self.Additional_Measure != 0) and (self.additional_calculated == False):
+            self.additional_left = self.left_explore_total
+            self.additional_right = self.right_explore_total
+            if (self.Novel_Side == "Left"):
+                self.additional_novel = self.additional_left
+                self.additional_familiar = self.additional_right
+                if (self.additional_left == 0) and (self.additional_right > 0):
+                    self.additional_discrim_ratio = 0
+                elif (self.additional_right == 0) and (self.additional_left > 0):
+                    self.additional_discrim_ratio = 1
+                elif (self.additional_right == 0) and (self.additional_left == 0):
+                    self.additional_discrim_ratio = 0
+                else:
+                    self.additional_discrim_ratio = (self.additional_left - self.additional_right) / (self.additional_left + self.additional_right)
+            elif (self.Novel_Side == "Right"):
+                self.additional_novel = self.additional_right
+                self.additional_familiar = self.additional_left
+                if (self.additional_left == 0) and (self.additional_right > 0):
+                    self.additional_discrim_ratio = 1
+                elif (self.additional_right == 0) and (self.additional_left > 0):
+                    self.additional_discrim_ratio = 0
+                elif (self.additional_right == 0) and (self.additional_left == 0):
+                    self.additional_discrim_ratio = 0
+                else:
+                    self.additional_discrim_ratio = (self.additional_right - self.additional_left) / (self.additional_left + self.additional_right)
+            elif (self.Novel_Side == "NA"):
+                self.additional_novel = self.additional_left
+                self.additional_familiar = self.additional_right
+                if (self.additional_left == 0) and (self.additional_right > 0):
+                    self.additional_discrim_ratio = 0
+                elif (self.additional_right == 0) and (self.additional_left > 0):
+                    self.additional_discrim_ratio = 1
+                elif (self.additional_right == 0) and (self.additional_left == 0):
+                    self.additional_discrim_ratio = 0
+                else:
+                    self.additional_discrim_ratio = (self.additional_left - self.additional_right) / (self.additional_left + self.additional_right)
+            self.additional_calculated = True
+        if ((self.time_elapsed >= self.Sample_Max) and ((self.trial_phase == "Sample") or (self.trial_phase == "Both"))) or (
+                    (self.time_elapsed >= self.Choice_Max) and (self.trial_phase == "Choice")):
+            self.trial_finish()
+        if (((self.active_left_score + self.active_right_score) >= self.Sample_Cut) and (
+                (self.trial_phase == "Sample") or (self.trial_phase == "Both"))) or (
+                    ((self.active_left_score + self.active_right_score) >= self.Choice_Cut) and (
+                            self.trial_phase == "Choice")):
+            self.trial_finish()
+        self.time_elapsed_string.set(round(self.time_elapsed, 2))
+        self.time_remaining_string.set(round(self.time_remaining, 2))
+        self.left_explore_length_string.set(round(self.active_left_score, 2))
+        self.right_explore_length_string.set(round(self.active_right_score, 2))
+        self.trial_window.after(10, self.time_update)
 
 
-        def trial_finish(self):
-            self.current_dir = os.getcwd()
+    def trial_finish(self):
+        self.current_dir = os.getcwd()
 
-            self.exp_folder = "\\Experiments"
-            self.data_folder = "\\Data"
-            self.protocol_folder = "\\Protocols"
+        self.exp_folder = "\\Experiments"
+        self.data_folder = "\\Data"
+        self.protocol_folder = "\\Protocols"
 
-            self.current_dir.replace("\\Protocols", "")
-            self.experiment_dir = self.current_dir + self.exp_folder
-            self.data_dir = self.current_dir + self.data_folder
+        self.current_dir.replace("\\Protocols", "")
+        self.experiment_dir = self.current_dir + self.exp_folder
+        self.data_dir = self.current_dir + self.data_folder
 
-            self.pressed_key = ""
+        self.pressed_key = ""
 
-            if (self.trial_phase == "Sample") or (self.trial_phase == "Choice"):
-                self.Delay = "NA"
+        if (self.trial_phase == "Sample") or (self.trial_phase == "Choice"):
+            self.Delay = "NA"
 
-            if (self.trial_phase == "Sample") or (self.trial_phase == "Both"):
-                self.bout_file = self.data_dir + "\\" + self.trial_expid + "\\" + self.trial_expid + "_Samp_Bout.csv"
-                self.sum_file = self.data_dir + "\\" + self.trial_expid + "\\" + self.trial_expid + "_Samp_Summary.csv"
-            if self.trial_phase == "Choice":
-                self.bout_file = self.data_dir + "\\" + self.trial_expid + "\\" + self.trial_expid + "_Choice_Bout.csv"
-                self.sum_file = self.data_dir + "\\" + self.trial_expid + "\\" + self.trial_expid + "_Choice_Summary.csv"
-            if (self.trial_phase == "Sample") or (self.trial_phase == "Both"):
-                self.active_bout = open(self.bout_file, 'a')
-                self.active_bout.write(self.trial_record)
-                self.active_bout.close()
+        if (self.trial_phase == "Sample") or (self.trial_phase == "Both"):
+            self.bout_file = self.data_dir + "\\" + self.trial_expid + "\\" + self.trial_expid + "_Samp_Bout.csv"
+            self.sum_file = self.data_dir + "\\" + self.trial_expid + "\\" + self.trial_expid + "_Samp_Summary.csv"
+        if self.trial_phase == "Choice":
+            self.bout_file = self.data_dir + "\\" + self.trial_expid + "\\" + self.trial_expid + "_Choice_Bout.csv"
+            self.sum_file = self.data_dir + "\\" + self.trial_expid + "\\" + self.trial_expid + "_Choice_Summary.csv"
+        if (self.trial_phase == "Sample") or (self.trial_phase == "Both"):
+            self.active_bout = open(self.bout_file, 'a')
+            self.active_bout.write(self.trial_record)
+            self.active_bout.close()
 
-                self.total_explore = self.left_explore_total + self.right_explore_total
-                if (self.Novel_Side == "Left") and (self.total_explore > 0):
-                    self.Discrimination_Ratio = (self.left_explore_total - self.right_explore_total) / (self.total_explore)
-                if (self.Novel_Side == "Right") and (self.total_explore > 0):
-                    self.Discrimination_Ratio = (self.right_explore_total - self.left_explore_total) / (self.total_explore)
-                if (self.total_explore == 0):
-                    self.Discrimination_Ratio = ""
+            self.total_explore = self.left_explore_total + self.right_explore_total
+            if (self.Novel_Side == "Left") and (self.total_explore > 0):
+                self.Discrimination_Ratio = (self.left_explore_total - self.right_explore_total) / (self.total_explore)
+            if (self.Novel_Side == "Right") and (self.total_explore > 0):
+                self.Discrimination_Ratio = (self.right_explore_total - self.left_explore_total) / (self.total_explore)
+            if (self.total_explore == 0):
+                self.Discrimination_Ratio = ""
 
-                self.active_sum = open(self.sum_file, 'a')
-                self.active_sum.write("\n")
-                self.active_sum.write(self.start_date)
+            self.active_sum = open(self.sum_file, 'a')
+            self.active_sum.write("\n")
+            self.active_sum.write(self.start_date)
+            self.active_sum.write(",")
+            self.active_sum.write(self.trial_anid)
+            self.active_sum.write(",")
+            self.active_sum.write(self.trial_condition)
+            self.active_sum.write(",")
+            self.active_sum.write(self.trial_obj1)
+            self.active_sum.write(",")
+            self.active_sum.write(self.trial_obj2)
+            self.active_sum.write(",")
+            self.active_sum.write(str(self.left_explore_total))
+            self.active_sum.write(",")
+            self.active_sum.write(str(self.right_explore_total))
+            self.active_sum.write(",")
+            self.active_sum.write(str(self.total_explore))
+            self.active_sum.write(",")
+            self.active_sum.write(str(self.Discrimination_Ratio))
+
+
+            self.active_sum.close()
+
+        if self.trial_phase == "Choice":
+            self.active_bout = open(self.bout_file, 'a')
+            self.active_bout.write(self.trial_record)
+            self.active_bout.close()
+
+            self.total_explore = self.left_explore_total + self.right_explore_total
+            if self.Novel_Side == "Left":
+                self.novel_explore = self.left_explore_total
+                self.familiar_explore = self.right_explore_total
+                self.Discrimination_Ratio = (self.left_explore_total - self.right_explore_total) / (
+                self.total_explore)
+            if self.Novel_Side == "Right":
+                self.novel_explore = self.right_explore_total
+                self.familiar_explore = self.left_explore_total
+                self.Discrimination_Ratio = (self.right_explore_total - self.left_explore_total) / (
+                self.total_explore)
+
+            self.active_sum = open(self.sum_file, 'a')
+            self.active_sum.write("\n")
+            self.active_sum.write(self.start_date)
+            self.active_sum.write(",")
+            self.active_sum.write(self.trial_anid)
+            self.active_sum.write(",")
+            self.active_sum.write(self.trial_condition)
+            self.active_sum.write(",")
+            self.active_sum.write(self.trial_obj1)
+            self.active_sum.write(",")
+            self.active_sum.write(self.trial_obj2)
+            self.active_sum.write(",")
+            self.active_sum.write(self.Novel_Side)
+            self.active_sum.write(",")
+            self.active_sum.write(str(self.Delay))
+            self.active_sum.write(",")
+            self.active_sum.write(str(self.novel_explore))
+            self.active_sum.write(",")
+            self.active_sum.write(str(self.familiar_explore))
+            self.active_sum.write(",")
+            self.active_sum.write(str(self.total_explore))
+            self.active_sum.write(",")
+            self.active_sum.write(str(self.Discrimination_Ratio))
+            if (self.Additional_Measure > 0) and (self.Additional_Measure < self.time_elapsed):
                 self.active_sum.write(",")
-                self.active_sum.write(self.trial_anid)
+                self.active_sum.write(str(self.additional_novel))
                 self.active_sum.write(",")
-                self.active_sum.write(self.trial_condition)
+                self.active_sum.write(str(self.additional_familiar))
                 self.active_sum.write(",")
-                self.active_sum.write(self.trial_obj1)
-                self.active_sum.write(",")
-                self.active_sum.write(self.trial_obj2)
-                self.active_sum.write(",")
-                self.active_sum.write(str(self.left_explore_total))
-                self.active_sum.write(",")
-                self.active_sum.write(str(self.right_explore_total))
-                self.active_sum.write(",")
-                self.active_sum.write(str(self.total_explore))
-                self.active_sum.write(",")
-                self.active_sum.write(str(self.Discrimination_Ratio))
+                self.active_sum.write(str(self.additional_discrim_ratio))
+
+            self.active_sum.close()
+
+        if (self.trial_phase == "Sample") or (self.trial_phase == "Choice"):
+            self.trial_window.destroy()
+        if (self.trial_phase == "Both"):
+            self.trial_window.destroy()
+            self.trial_wait()
+
+    def trial_wait(self):
+        def trial_wait_start_choice():
+            self.trial_phase = "Choice"
+            self.Delay = self.trial_wait_time
+            self.trial_wait_window.destroy()
+            self.trial_parameter_reset()
+            self.run_window()
+        def trial_wait_cancel_choice():
+            self.trial_wait_window.destroy()
+
+        self.trial_wait_window = Tk()
+
+        self.trial_wait_start = time.time()
+        self.trial_wait_time = 0
+        self.trial_wait_time_string = IntVar()
+        self.trial_wait_time_string.set(0)
+
+        self.trial_wait_title = Label(self.trial_wait_window, text="Delay Period")
+        self.trial_wait_title.grid(row=1,column=1)
+
+        self.trial_wait_time_display = Label(self.trial_wait_window, textvariable=self.trial_wait_time_string)
+        self.trial_wait_time_display.grid(row=2,column=1)
+
+        self.trial_wait_time_start = Button(self.trial_wait_window, text="Start Choice", command=trial_wait_start_choice)
+        self.trial_wait_time_start.grid(row=3,column=1)
+
+        self.trial_wait_time_cancel = Button(self.trial_wait_window,text="Cancel Choice", command=trial_wait_cancel_choice)
+        self.trial_wait_time_cancel.grid(row=4,column=1)
+        self.trial_wait_window.update_idletasks()
+        self.trial_wait_window.update()
+        self.trial_wait_update()
+        self.trial_wait_window.mainloop()
+    def trial_wait_update(self):
+        self.trial_wait_time = time.time() - self.trial_wait_start
+        self.trial_wait_time_string.set(round(self.trial_wait_time, 2))
+        self.trial_wait_window.after(100, self.trial_wait_update)
 
 
-                self.active_sum.close()
-
-            if self.trial_phase == "Choice":
-                self.active_bout = open(self.bout_file, 'a')
-                self.active_bout.write(self.trial_record)
-                self.active_bout.close()
-
-                self.total_explore = self.left_explore_total + self.right_explore_total
-                if self.Novel_Side == "Left":
-                    self.novel_explore = self.left_explore_total
-                    self.familiar_explore = self.right_explore_total
-                    self.Discrimination_Ratio = (self.left_explore_total - self.right_explore_total) / (
-                    self.total_explore)
-                if self.Novel_Side == "Right":
-                    self.novel_explore = self.right_explore_total
-                    self.familiar_explore = self.left_explore_total
-                    self.Discrimination_Ratio = (self.right_explore_total - self.left_explore_total) / (
-                    self.total_explore)
-
-                self.active_sum = open(self.sum_file, 'a')
-                self.active_sum.write("\n")
-                self.active_sum.write(self.start_date)
-                self.active_sum.write(",")
-                self.active_sum.write(self.trial_anid)
-                self.active_sum.write(",")
-                self.active_sum.write(self.trial_condition)
-                self.active_sum.write(",")
-                self.active_sum.write(self.trial_obj1)
-                self.active_sum.write(",")
-                self.active_sum.write(self.trial_obj2)
-                self.active_sum.write(",")
-                self.active_sum.write(self.Novel_Side)
-                self.active_sum.write(",")
-                self.active_sum.write(str(self.Delay))
-                self.active_sum.write(",")
-                self.active_sum.write(str(self.novel_explore))
-                self.active_sum.write(",")
-                self.active_sum.write(str(self.familiar_explore))
-                self.active_sum.write(",")
-                self.active_sum.write(str(self.total_explore))
-                self.active_sum.write(",")
-                self.active_sum.write(str(self.Discrimination_Ratio))
-                if (self.Additional_Measure > 0) and (self.Additional_Measure < self.time_elapsed):
-                    self.active_sum.write(",")
-                    self.active_sum.write(str(self.additional_novel))
-                    self.active_sum.write(",")
-                    self.active_sum.write(str(self.additional_familiar))
-                    self.active_sum.write(",")
-                    self.active_sum.write(str(self.additional_discrim_ratio))
-
-                self.active_sum.close()
-
-            if (self.trial_phase == "Sample") or (self.trial_phase == "Choice"):
-                self.trial_window.destroy()
-            if (self.trial_phase == "Both"):
-                self.trial_window.destroy()
-                self.trial_wait()
-
-        def trial_wait(self):
-            def trial_wait_start_choice():
-                self.trial_phase = "Choice"
-                self.Delay = self.trial_wait_time
-                self.trial_wait_window.destroy()
-                self.trial_parameter_reset()
-                self.run_window()
-            def trial_wait_cancel_choice():
-                self.trial_wait_window.destroy()
-
-            self.trial_wait_window = Tk()
-
-            self.trial_wait_start = time.time()
-            self.trial_wait_time = 0
-            self.trial_wait_time_string = IntVar()
-            self.trial_wait_time_string.set(0)
-
-            self.trial_wait_title = Label(self.trial_wait_window, text="Delay Period")
-            self.trial_wait_title.grid(row=1,column=1)
-
-            self.trial_wait_time_display = Label(self.trial_wait_window, textvariable=self.trial_wait_time_string)
-            self.trial_wait_time_display.grid(row=2,column=1)
-
-            self.trial_wait_time_start = Button(self.trial_wait_window, text="Start Choice", command=trial_wait_start_choice)
-            self.trial_wait_time_start.grid(row=3,column=1)
-
-            self.trial_wait_time_cancel = Button(self.trial_wait_window,text="Cancel Choice", command=trial_wait_cancel_choice)
-            self.trial_wait_time_cancel.grid(row=4,column=1)
-            self.trial_wait_window.update_idletasks()
-            self.trial_wait_window.update()
-            self.trial_wait_update()
-            self.trial_wait_window.mainloop()
-        def trial_wait_update(self):
-            self.trial_wait_time = time.time() - self.trial_wait_start
-            self.trial_wait_time_string.set(round(self.trial_wait_time, 2))
-            self.trial_wait_window.after(100, self.trial_wait_update)
-
-
-    test = Trial_Create(Curr_Exp=Curr_Exp)
-    while True:
-        if isinstance(trial_import_data, list):
-            Active_Trial(trial_data=trial_import_data)
-            break
-        else:
-            pass
+#test = Trial_Create(Curr_Exp=Curr_Exp)
+# while True:
+    # if isinstance(trial_import_data, list):
+       #  Active_Trial(trial_data=trial_import_data)
+        # break
+    # else:
+        # pass
