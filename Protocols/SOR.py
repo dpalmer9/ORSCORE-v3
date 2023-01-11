@@ -330,31 +330,28 @@ class TrialConfigure:
         self.selected_condition = StringVar()
         self.selected_object1 = StringVar()
         self.selected_object2 = StringVar()
-        self.selected_novelside = IntVar()
-        self.selected_trialtype = IntVar()
+        self.selected_novelside = StringVar()
+        self.selected_trialtype = StringVar()
 
 
     def import_experiment(self,experiment_file):
         self.experiment_config.read(experiment_file)
 
-    def run_trial(self):
+    def run_trial(self, tk_window):
         self.experiment_config['Trial Parameters'] = dict()
-        self.experiment_config['Trial Parameters']['animal_id'] = self.run_ID_prompt.get()
+        self.experiment_config['Trial Parameters']['animal_id'] = self.animal_id.get()
 
-        if self.selected_trialtype.get() == 1:
-            trial_type = "Sample"
-        if self.selected_trialtype.get() == 2:
-            trial_type = "Choice"
-        if self.selected_trialtype.get() == 3:
-            trial_type = "Both"
-        self.experiment_config['Trial Parameters']['trial_type'] = trial_type
+        self.experiment_config['Trial Parameters']['trial_type'] = self.selected_trialtype.get()
 
         trial_raw_condition_position = self.selected_condition.get()
+        trial_raw_condition_position = int(trial_raw_condition_position[0])
+        print(trial_raw_condition_position)
         conditions_list = self.experiment_config['Condition Parameters']['conditions']
         conditions_list = conditions_list.split(',')
         self.experiment_config['Trial Parameters']['condition'] = conditions_list[trial_raw_condition_position]
 
         object_sample_position = self.selected_object1.get()
+        object_sample_position = int(object_sample_position[0])
         objects_list = self.experiment_config['Object List']['objects']
         objects_list = objects_list.split(',')
         self.experiment_config['Trial Parameters']['sample_object'] = objects_list[object_sample_position]
@@ -362,25 +359,28 @@ class TrialConfigure:
         object_choice_position = self.selected_object2.get()
         self.experiment_config['Trial Parameters']['choice_object'] = objects_list[object_choice_position]
 
-        if self.selected_novelside.get() == 1:
-            novel_side = "Left"
-        if self.selected_novelside.get() == 2:
-            novel_side = "Right"
-
-        self.experiment_config['Trial Parameters']['novel_side'] = novel_side
+        self.experiment_config['Trial Parameters']['novel_side'] = self.selected_novelside.get()
 
         ActiveTrial(self.experiment_config)
 
-
-        self.top_run.destroy()
+        tk_window.destroy()
 
     def cancel_trial(self,tk_window):
         tk_window.destroy()
+
 
     def construct_gui(self):
         top_run = Tk()
         icon_path = self.curr_dir + "\\" + "Mouse_Icon.ico"
         top_run.iconbitmap(icon_path)
+
+        # Vars
+        self.animal_id = StringVar(master=top_run)
+        self.selected_condition = StringVar(master=top_run)
+        self.selected_object1 = StringVar(master=top_run)
+        self.selected_object2 = StringVar(master=top_run)
+        self.selected_novelside = StringVar(master=top_run)
+        self.selected_trialtype = StringVar(master=top_run)
 
         run_title = Label(top_run, text="Trial Setup")
         run_title.grid(row=1, column=2)
@@ -401,8 +401,12 @@ class TrialConfigure:
         print(conditions_list)
         for condition in conditions_list:
             run_condition_listbox.insert(END, condition)
-        run_condition_listbox.bind('<<ListboxSelect>>',lambda: self.selected_condition.set(
-            run_condition_listbox.curselection()))
+
+        def set_condition(event):
+            current_selection = run_condition_listbox.curselection()
+            self.selected_condition.set(current_selection)
+        run_condition_listbox.bind('<<ListboxSelect>>', set_condition)
+
 
         run_object_label = Label(top_run, text="Objects")
         run_object_label.grid(row=5, column=2)
@@ -416,8 +420,10 @@ class TrialConfigure:
         objects_list = objects_list.split(',')
         for object_name in objects_list:
             run_object_sample_listbox.insert(END, object_name)
-        run_object_sample_listbox.bind('<<ListboxSelect>>', lambda: self.selected_object1.set(
-            run_object_sample_listbox.curselection()))
+        def set_sample(event):
+            current_selection = run_object_sample_listbox.curselection()
+            self.selected_object1.set(current_selection)
+        run_object_sample_listbox.bind('<<ListboxSelect>>', set_sample)
 
         run_object_choice_label = Label(top_run, text="Choice Object")
         run_object_choice_label.grid(row=6, column=3)
@@ -428,30 +434,28 @@ class TrialConfigure:
             run_object_choice_listbox.insert(END, object_name)
         run_novel_label = Label(top_run, text="Novel Side")
         run_novel_label.grid(row=8, column=2)
-        run_object_choice_listbox.bind('<<ListboxSelect>>', lambda: self.selected_object2.set(
-            run_object_sample_listbox.curselection()))
+        def set_choice(event):
+            current_selection = run_object_choice_listbox.curselection()
+            self.selected_object2.set(current_selection)
+        run_object_choice_listbox.bind('<<ListboxSelect>>', set_choice)
 
-        run_novel_left = Radiobutton(top_run, text="Left", variable=self.selected_novelside, value=1,
-                                     command=lambda: self.selected_novelside.set(1))
+        run_novel_left = Radiobutton(top_run, text="Left", variable=self.selected_novelside, value='Left')
         run_novel_left.grid(row=9, column=1)
 
-        run_novel_right = Radiobutton(top_run, text="Right", variable=self.selected_novelside, value=2,
-                                      command=lambda: self.selected_novelside.set(2))
+        run_novel_right = Radiobutton(top_run, text="Right", variable=self.selected_novelside, value='Right')
         run_novel_right.grid(row=9, column=3)
 
-        run_phase_sample_only = Radiobutton(top_run, text="Sample", variable=self.selected_trialtype, value=1,
-                                            command=lambda: self.selected_trialtype.set(1))
+        run_phase_sample_only = Radiobutton(top_run, text="Sample", variable=self.selected_trialtype, value='Sample')
         run_phase_sample_only.grid(row=10, column=2)
 
-        run_phase_choice_only = Radiobutton(top_run, text="Choice", variable=self.selected_trialtype, value=2,
-                                            command=lambda: self.selected_trialtype.set(2))
+        run_phase_choice_only = Radiobutton(top_run, text="Choice", variable=self.selected_trialtype, value='Choice')
         run_phase_choice_only.grid(row=11, column=2)
 
-        run_phase_choice_both = Radiobutton(top_run, text="Sample/Choice", variable=self.selected_trialtype, value=3,
-                                            command=lambda: self.selected_trialtype.set(3))
+        run_phase_choice_both = Radiobutton(top_run, text="Sample/Choice", variable=self.selected_trialtype,
+                                            value='Both')
         run_phase_choice_both.grid(row=12, column=2)
 
-        run_start_trial_button = Button(top_run, text="Start Trial", command=self.run_trial)
+        run_start_trial_button = Button(top_run, text="Start Trial", command= lambda: self.run_trial(top_run))
         run_start_trial_button.grid(row=13, column=2)
 
         run_cancel_trial_button = Button(top_run, text="Cancel", command= lambda: self.cancel_trial(top_run))
