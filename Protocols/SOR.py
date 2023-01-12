@@ -344,14 +344,11 @@ class TrialConfigure:
         self.experiment_config['Trial Parameters']['trial_type'] = self.selected_trialtype.get()
 
         trial_raw_condition_position = self.selected_condition.get()
-        trial_raw_condition_position = int(trial_raw_condition_position[0])
-        print(trial_raw_condition_position)
         conditions_list = self.experiment_config['Condition Parameters']['conditions']
         conditions_list = conditions_list.split(',')
         self.experiment_config['Trial Parameters']['condition'] = conditions_list[trial_raw_condition_position]
 
         object_sample_position = self.selected_object1.get()
-        object_sample_position = int(object_sample_position[0])
         objects_list = self.experiment_config['Object List']['objects']
         objects_list = objects_list.split(',')
         self.experiment_config['Trial Parameters']['sample_object'] = objects_list[object_sample_position]
@@ -370,15 +367,15 @@ class TrialConfigure:
 
 
     def construct_gui(self):
-        top_run = Tk()
+        top_run = Toplevel()
         icon_path = self.curr_dir + "\\" + "Mouse_Icon.ico"
         top_run.iconbitmap(icon_path)
 
         # Vars
         self.animal_id = StringVar(master=top_run)
-        self.selected_condition = StringVar(master=top_run)
-        self.selected_object1 = StringVar(master=top_run)
-        self.selected_object2 = StringVar(master=top_run)
+        self.selected_condition = IntVar(master=top_run)
+        self.selected_object1 = IntVar(master=top_run)
+        self.selected_object2 = IntVar(master=top_run)
         self.selected_novelside = StringVar(master=top_run)
         self.selected_trialtype = StringVar(master=top_run)
 
@@ -404,7 +401,7 @@ class TrialConfigure:
 
         def set_condition(event):
             current_selection = run_condition_listbox.curselection()
-            self.selected_condition.set(current_selection)
+            self.selected_condition.set(current_selection[0])
         run_condition_listbox.bind('<<ListboxSelect>>', set_condition)
 
 
@@ -422,7 +419,7 @@ class TrialConfigure:
             run_object_sample_listbox.insert(END, object_name)
         def set_sample(event):
             current_selection = run_object_sample_listbox.curselection()
-            self.selected_object1.set(current_selection)
+            self.selected_object1.set(current_selection[0])
         run_object_sample_listbox.bind('<<ListboxSelect>>', set_sample)
 
         run_object_choice_label = Label(top_run, text="Choice Object")
@@ -436,7 +433,7 @@ class TrialConfigure:
         run_novel_label.grid(row=8, column=2)
         def set_choice(event):
             current_selection = run_object_choice_listbox.curselection()
-            self.selected_object2.set(current_selection)
+            self.selected_object2.set(current_selection[0])
         run_object_choice_listbox.bind('<<ListboxSelect>>', set_choice)
 
         run_novel_left = Radiobutton(top_run, text="Left", variable=self.selected_novelside, value='Left')
@@ -510,39 +507,48 @@ class ActiveTrial:
         self.choice_max = int(trial_config['Time Parameters']['choice_max'])
         self.additional_time = int(trial_config['Time Parameters']['additional_time'])
 
+        self.time_elapsed = 0
+        self.time_remaining = 0
+        self.left_explore = 0
+        self.right_explore = 0
+
+        self.time_elapsed_string = str(self.time_elapsed)
+        self.time_remaining_string = str(self.time_remaining)
+        self.left_explore_string = str(self.left_explore)
+        self.right_explore_string = str(self.right_explore)
+
         # Keybindings
         if self.key_bind_mode == 1:
             keyboard.add_hotkey(self.key_bind_left, trigger_on_release=False)
             keyboard.add_hotkey(self.key_bind_right, trigger_on_release=False)
         elif self.key_bind_mode == 2:
             keyboard.add_hotkey(self.key_bind_left, lambda: print('left on'), trigger_on_release=False)
-            keyboard.add_hotkey(self.key_bind_left, lambda: print('left off'), trigger_on_release=True)
             keyboard.add_hotkey(self.key_bind_right, lambda: print('right on'), trigger_on_release=False)
-            keyboard.add_hotkey(self.key_bind_right, lambda: print('right off'), trigger_on_release=True)
+
 
         # GUI
         # GUI Elements
-        self.trial_window = Tk()
+        self.trial_window = Toplevel()
         self.trial_title = Label(self.trial_window, text="Active Trial Menu")
         self.trial_title.grid(row=1, column=1)
 
-        self.trial_start_button = Button(self.trial_window, text="Start Trial", command=trial_menu_start)
+        self.trial_start_button = Button(self.trial_window, text="Start Trial", command=self.trial_start)
         self.trial_start_button.grid(row=1, column=2)
 
-        self.trial_finish_button = Button(self.trial_window, text="Finish Trial", command=trial_menu_finish,
+        self.trial_finish_button = Button(self.trial_window, text="Finish Trial", command=self.trial_finish,
                                           state=DISABLED)
         self.trial_finish_button.grid(row=2, column=2)
 
-        self.trial_cancel_button = Button(self.trial_window, text="Cancel Trial", command=trial_menu_cancel)
+        self.trial_cancel_button = Button(self.trial_window, text="Cancel Trial", command=self.trial_cancel)
         self.trial_cancel_button.grid(row=1, column=3)
 
-        self.trial_pause_button = Button(self.trial_window, text="Pause", command=trial_menu_pause, state=DISABLED)
+        self.trial_pause_button = Button(self.trial_window, text="Pause", command=self.trial_pause, state=DISABLED)
         self.trial_pause_button.grid(row=1, column=4)
 
-        self.trial_resume_button = Button(self.trial_window, text="Resume", command=trial_menu_resume, state=DISABLED)
+        self.trial_resume_button = Button(self.trial_window, text="Resume", command=self.trial_resume, state=DISABLED)
         self.trial_resume_button.grid(row=2, column=4)
 
-        self.trial_restart_button = Button(self.trial_window, text="Restart", command=trial_menu_restart,
+        self.trial_restart_button = Button(self.trial_window, text="Restart", command=self.trial_restart,
                                            state=DISABLED)
         self.trial_restart_button.grid(row=2, column=3)
 
@@ -565,10 +571,10 @@ class ActiveTrial:
         self.trial_status_total_remaining = Label(self.trial_window, textvariable=self.time_remaining_string)
         self.trial_status_total_remaining.grid(row=4, column=2)
 
-        self.trial_status_left_elapsed = Label(self.trial_window, textvariable=self.left_explore_length_string)
+        self.trial_status_left_elapsed = Label(self.trial_window, textvariable=self.left_explore_string)
         self.trial_status_left_elapsed.grid(row=4, column=3)
 
-        self.trial_status_right_elapsed = Label(self.trial_window, textvariable=self.right_explore_length_string)
+        self.trial_status_right_elapsed = Label(self.trial_window, textvariable=self.right_explore_string)
         self.trial_status_right_elapsed.grid(row=4, column=4)
 
         ## Object Exploration Status ##
@@ -597,12 +603,26 @@ class ActiveTrial:
         self.start_date = time.strftime('%d %m %Y,%H:%M:%S')
         self.start_time = time.time()
 
+    def trial_restart(self):
+        return
+
+    def trial_pause(self):
+        return
+
+    def trial_cancel(self):
+        return
+
+    def trial_finish(self):
+        return
+
+    def trial_resume(self):
+        return
+
     def time_update(self):
-
-
         return
 
 #####################################################################################################
+
 
 class Active_Trial():
 
