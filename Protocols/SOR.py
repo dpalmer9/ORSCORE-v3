@@ -1,27 +1,30 @@
 ## Module Import ##
 import os
 import time
-import tkinter  ## Import Tkinter Modules
-import msvcrt
-from msvcrt import getch
+import sys
 from tkinter import *  ## Access Tkinter modules without calling to Tkinter
-import csv
-import threading
-import imp
+
 
 #############################################################################################################
 ## Find Current Directory ##
 current_dir = os.getcwd()
 
-exp_folder = "\\Experiments"
-data_folder = "\\Data"
-protocol_folder = "\\Protocols"
+if sys.platform == 'linux' or sys.platform == 'darwin':
+    folder_symbol = '/'
+    current_dir.replace("/Protocols", "")
+elif sys.platform == 'win32':
+    folder_symbol = '\\'
+    current_dir.replace("\\Protocols", "")
 
-current_dir.replace("\\Protocols","")
+exp_folder = folder_symbol + "Experiments"
+data_folder = folder_symbol + "Data"
+protocol_folder = folder_symbol + "Protocols"
+
+current_dir.replace("Protocols","")
 experiment_dir = current_dir + exp_folder
 data_dir = current_dir + data_folder
 
-icon = current_dir + "\\" + "Mouse_Icon.ico"
+icon = current_dir + folder_symbol + "Mouse_Icon.ico"
 ## SOR Variable List - Create ##
 Conditions_List = list()
 ObjectPairs_List = list()
@@ -234,7 +237,7 @@ def Create_Experiment():
         nonlocal Key_Setting
         exp_filename = SOR_ID_Prompt.get() + ".ORe"
         data_raw_filename = SOR_ID_Prompt.get() + "_Raw.csv"
-        data_raw_filepath = data_dir + "\\" + data_raw_filename
+        data_raw_filepath = data_dir + folder_symbol + data_raw_filename
 
         if len(SOR_Additional_Measure_Prompt.get()) == 0:
             SOR_Additional_Time = 0
@@ -242,30 +245,30 @@ def Create_Experiment():
             SOR_Additional_Time = int(SOR_Additional_Measure_Prompt.get())
 
 
-        exp_filepath = experiment_dir + "\\" + exp_filename
-        data_file_dir = data_dir + "\\" + SOR_ID_Prompt.get()
+        exp_filepath = experiment_dir + folder_symbol + exp_filename
+        data_file_dir = data_dir + folder_symbol + SOR_ID_Prompt.get()
         os.makedirs(data_file_dir)
 
         data_samp_bout_filename = SOR_ID_Prompt.get() + "_Samp_Bout.csv"
-        data_samp_bout_filepath = data_file_dir + "\\" + data_samp_bout_filename
+        data_samp_bout_filepath = data_file_dir + folder_symbol + data_samp_bout_filename
         data_samp_bout_file = open(data_samp_bout_filepath, "w")
         data_samp_bout_file.write("'Bout#','Bout_Start_Time','Bout_Side','Bout_Duration'")
         data_samp_bout_file.close()
         
         data_Choice_bout_filename = SOR_ID_Prompt.get() + "_Choice_Bout.csv"
-        data_Choice_bout_filepath = data_file_dir + "\\" + data_Choice_bout_filename
+        data_Choice_bout_filepath = data_file_dir + folder_symbol + data_Choice_bout_filename
         data_Choice_bout_file = open(data_Choice_bout_filepath, "w")
         data_Choice_bout_file.write("'Bout#','Bout_Start_Time','Bout_Side','Bout_Duration'")
         data_Choice_bout_file.close()
 
         data_samp_Summary_filename = SOR_ID_Prompt.get() + "_Samp_Summary.csv"
-        data_samp_Summary_filepath = data_file_dir + "\\" + data_samp_Summary_filename
+        data_samp_Summary_filepath = data_file_dir + folder_symbol + data_samp_Summary_filename
         data_samp_Summary_file = open(data_samp_Summary_filepath, "w")
         data_samp_Summary_file.write("'Date','Time','Animal_ID','Condition','Left_Object','Right_Object','Left_Explore_Total','Right_Explore_Total','Total_Exploration','Discrimination_Ratio'")
         data_samp_Summary_file.close()
 
         data_Choice_Summary_filename = SOR_ID_Prompt.get() + "_Choice_Summary.csv"
-        data_Choice_Summary_filepath = data_file_dir + "\\" + data_Choice_Summary_filename
+        data_Choice_Summary_filepath = data_file_dir + folder_symbol + data_Choice_Summary_filename
         data_Choice_Summary_file = open(data_Choice_Summary_filepath, "w")
         data_Choice_Summary_file.write("'Date','Time','Animal_ID','Condition','Left_Object','Right_Object','Novel_Side','Delay','Novel_Explore_Total','Familiar_Explore_Total','Total_Exploration','Discrimination_Ratio', '%d_Novel_Explore', '%d_Familiar_Explore','%d_Discrimination_Ratio'" % (SOR_Additional_Time,SOR_Additional_Time,SOR_Additional_Time))
         data_Choice_Summary_file.close()
@@ -389,6 +392,14 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
     trial_import_data = str()
     class Trial_Create():
         def __init__(self, Curr_Exp):
+            self.current_dir = os.getcwd()
+            if sys.platform == 'linux' or sys.platform == 'darwin':
+                self.folder_symbol = '/'
+                self.current_dir.replace("/Protocols", "")
+            elif sys.platform == 'win32':
+                self.folder_symbol = '\\'
+                self.current_dir.replace("\\Protocols", "")
+
             self.experiment_file = open(Curr_Exp, "r")
             self.experiment_file_contents = self.experiment_file.readlines()
             self.experiment_file_contents = [experiment_item.strip("\n") for experiment_item in
@@ -642,6 +653,14 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
     class Active_Trial():
 
         def __init__(self, trial_data):
+            self.current_dir = os.getcwd()
+            if sys.platform == 'linux' or sys.platform == 'darwin':
+                self.folder_symbol = '/'
+                self.current_dir.replace("/Protocols", "")
+            elif sys.platform == 'win32':
+                self.folder_symbol = '\\'
+                self.current_dir.replace("\\Protocols", "")
+
             self.trial_data = trial_data
             self.trial_expid = str(self.trial_data[0])
             self.trial_anid = str(self.trial_data[1])
@@ -1054,13 +1073,11 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
 
 
         def trial_finish(self):
-            self.current_dir = os.getcwd()
 
-            self.exp_folder = "\\Experiments"
-            self.data_folder = "\\Data"
-            self.protocol_folder = "\\Protocols"
+            self.exp_folder = self.folder_symbol + "Experiments"
+            self.data_folder = self.folder_symbol + "Data"
+            self.protocol_folder = self.folder_symbol + "Protocols"
 
-            self.current_dir.replace("\\Protocols", "")
             self.experiment_dir = self.current_dir + self.exp_folder
             self.data_dir = self.current_dir + self.data_folder
 
@@ -1070,11 +1087,11 @@ def Trial_Setup(Curr_Exp, Curr_Raw_Data):
                 self.Delay = "NA"
 
             if (self.trial_phase == "Sample") or (self.trial_phase == "Both"):
-                self.bout_file = self.data_dir + "\\" + self.trial_expid + "\\" + self.trial_expid + "_Samp_Bout.csv"
-                self.sum_file = self.data_dir + "\\" + self.trial_expid + "\\" + self.trial_expid + "_Samp_Summary.csv"
+                self.bout_file = self.data_dir + self.folder_symbol + self.trial_expid + self.folder_symbol + self.trial_expid + "_Samp_Bout.csv"
+                self.sum_file = self.data_dir + self.folder_symbol + self.trial_expid + self.folder_symbol + self.trial_expid + "_Samp_Summary.csv"
             if self.trial_phase == "Choice":
-                self.bout_file = self.data_dir + "\\" + self.trial_expid + "\\" + self.trial_expid + "_Choice_Bout.csv"
-                self.sum_file = self.data_dir + "\\" + self.trial_expid + "\\" + self.trial_expid + "_Choice_Summary.csv"
+                self.bout_file = self.data_dir + self.folder_symbol + self.trial_expid + self.folder_symbol + self.trial_expid + "_Choice_Bout.csv"
+                self.sum_file = self.data_dir + self.folder_symbol + self.trial_expid + self.folder_symbol + self.trial_expid + "_Choice_Summary.csv"
             if (self.trial_phase == "Sample") or (self.trial_phase == "Both"):
                 self.active_bout = open(self.bout_file, 'a')
                 self.active_bout.write(self.trial_record)

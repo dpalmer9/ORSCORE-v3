@@ -7,9 +7,14 @@ import sys
 # Find Current Directory
 current_dir = os.getcwd()
 
-exp_folder = "\\Experiments"
-data_folder = "\\Data"
-protocol_folder = "\\Protocols"
+if sys.platform == 'linux' or sys.platform == 'darwin':
+    folder_symbol = '/'
+elif sys.platform == 'win32':
+    folder_symbol = '\\'
+
+exp_folder = folder_symbol + "Experiments"
+data_folder = folder_symbol + "Data"
+protocol_folder = folder_symbol + "Protocols"
 
 exp_dir = current_dir + exp_folder
 protocol_dir = current_dir + protocol_folder
@@ -35,7 +40,7 @@ Active_Prot = [prot_file.strip(".py") for prot_file in Active_Prot]
 
 # Establish Main Window
 top = Tk()  # Establish Top/Primary Window
-icon = current_dir + "\\" + "Mouse_Icon.ico"
+icon = current_dir + folder_symbol + "Mouse_Icon.ico"
 top.iconbitmap(icon)
 
 # Experiment Command Run Function
@@ -56,7 +61,7 @@ def experiment_command_run():
     exp_protocol_name = [exp_protocol_name.strip("Protocol = ")]
     exp_protocol_name = str(exp_protocol_name[0])
 
-    data_filepath = data_dir + "\\" + exp_selected_name + "\\" + exp_selected_name + "_Raw.csv"
+    data_filepath = data_dir + folder_symbol + exp_selected_name + folder_symbol + exp_selected_name + "_Raw.csv"
     top.destroy()
     if exp_protocol_name == "MSO":
         from Protocols.MSO import Trial_Setup
@@ -76,7 +81,7 @@ def experiment_command_delete():
     exp_select_list_pos = curr_exp_list.curselection()
     exp_selected_name = curr_exp_list.get(exp_select_list_pos[0])
     global exp_dir
-    file_path = exp_dir + "\\" + exp_selected_name + ".ORe"
+    file_path = exp_dir + folder_symbol + exp_selected_name + ".ORe"
     os.remove(file_path)
     curr_exp_list.delete(0, END)
     active_exp = list()
