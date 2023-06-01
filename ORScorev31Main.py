@@ -57,6 +57,7 @@ def experiment_command_run():
     exp_protocol_name = str(exp_protocol_name[0])
 
     data_filepath = data_dir + "\\" + exp_selected_name + "\\" + exp_selected_name + "_Raw.csv"
+    top.destroy()
     if exp_protocol_name == "MSO":
         from Protocols.MSO import Trial_Setup
         Trial_Setup(Curr_Exp=exp_filepath, Curr_Raw_Data=data_filepath)
@@ -66,6 +67,7 @@ def experiment_command_run():
     if exp_protocol_name == "SOR":
         from Protocols.SOR import Trial_Setup
         Trial_Setup(Curr_Exp=exp_filepath, Curr_Raw_Data=data_filepath)
+
 
 
 # Experiment Delete Function
